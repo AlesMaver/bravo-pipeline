@@ -8,6 +8,7 @@ workflow prepareCoverage {
 
     # Reference FASTA file - hg37/hg38
     File referenceFasta
+    # Get reference fasta cache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
     File referenceFastaCache
 
     scatter (idx in range(length(inputCramFiles))) {
