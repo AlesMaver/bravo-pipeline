@@ -1,6 +1,7 @@
 workflow prepareCoverage {
     # Might be the same files as samples for Cram Prep step?
     Array[File] inputCramFiles
+    Array[File] inputCraiFiles
 
     # Chromosome name e.g. chr22
     String chromosome
@@ -8,9 +9,12 @@ workflow prepareCoverage {
     # Reference FASTA file - hg37/hg38
     File referenceFasta
 
-    scatter (file in inputCramFiles) {
+    scatter (idx in range(length(inputCramFiles))) {
+    #scatter (file in inputCramFiles) {
         call extractDepth {
-            input: inputCramFile = file,
+            input: 
+                inputCramFile = inputCramFiles[idx],
+                inputCraiFile = inputCraiFiles[idx],
                 chromosome = chromosome,
                 referenceFasta = referenceFasta
         }
@@ -23,6 +27,7 @@ workflow prepareCoverage {
 
 task extractDepth {
     File inputCramFile
+    File inputCraiFile
     String chromosome
     File referenceFasta
     String sample = basename(inputCramFile, ".bam")
