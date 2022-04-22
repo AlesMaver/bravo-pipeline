@@ -2,8 +2,8 @@ workflow prepareCoverage {
     # Might be the same files as samples for Cram Prep step?
     Array[File] inputCramFiles
 
-    # Chromosome number e.g. 22
-    Int chromosome
+    # Chromosome name e.g. chr22
+    String chromosome
 
     # Reference FASTA file - hg37/hg38
     File referenceFasta
