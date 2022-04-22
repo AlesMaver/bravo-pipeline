@@ -8,6 +8,7 @@ workflow prepareCoverage {
 
     # Reference FASTA file - hg37/hg38
     File referenceFasta
+    File referenceFastaCache
 
     scatter (idx in range(length(inputCramFiles))) {
     #scatter (file in inputCramFiles) {
@@ -16,7 +17,8 @@ workflow prepareCoverage {
                 inputCramFile = inputCramFiles[idx],
                 inputCraiFile = inputCraiFiles[idx],
                 chromosome = chromosome,
-                referenceFasta = referenceFasta
+                referenceFasta = referenceFasta,
+                referenceFastaCache = referenceFastaCache
         }
     }
     call aggrBasePair {
@@ -30,9 +32,14 @@ task extractDepth {
     File inputCraiFile
     String chromosome
     File referenceFasta
+    File referenceFastaCache
     String sample = basename(inputCramFile, ".bam")
 
     command {
+        tar xzf ${referenceFastaCache}
+        export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
+        export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
+    
         samtools view -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
         samtools calmd -uAEr - ${referenceFasta} | \
         bam clipOverlap --in -.ubam --out -.ubam | \
