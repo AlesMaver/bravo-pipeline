@@ -23,7 +23,7 @@ workflow prepareCoverage {
 
 task extractDepth {
     File inputCramFile
-    Int chromosome
+    String chromosome
     File referenceFasta
     String sample = basename(inputCramFile, ".bam")
 
@@ -49,7 +49,7 @@ task extractDepth {
 
 task aggrBasePair {
     Array[File] inputFiles
-    Int chromosome
+    String chromosome
     # Not splitting by BP for now
     Int startBP = 0
     Int endBP = 999999999
