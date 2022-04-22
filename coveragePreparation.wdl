@@ -23,7 +23,9 @@ workflow prepareCoverage {
         }
     }
     call aggrBasePair {
-        input: inputFiles = extractDepth.outDepth,
+        input: 
+            inputFiles = extractDepth.outDepth,
+            inputIndices = extractDepth.outIndex,
             chromosome = chromosome
     }
 }
@@ -62,6 +64,7 @@ task extractDepth {
 
 task aggrBasePair {
     Array[File] inputFiles
+    Array[File] inputIndices
     String chromosome
     # Not splitting by BP for now
     Int startBP = 0
