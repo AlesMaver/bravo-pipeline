@@ -47,7 +47,7 @@ task extractDepth {
         samtools mpileup -f ${referenceFasta} -Q 20 -t DP - | \
         cut -f1-4 | \
         bgzip > ${chromosome}.${sample}.depth.gz \
-        && tabix ${chromosome}.${sample}.depth.gz
+        && tabix -b 2 ${chromosome}.${sample}.depth.gz
     }
     output {
         File outDepth = "${chromosome}.${sample}.depth.gz"
