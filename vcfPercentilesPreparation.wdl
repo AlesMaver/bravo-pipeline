@@ -16,7 +16,7 @@ workflow prepareVCFPercentiles {
     String lofOptions
 
     # Directory for reference data
-    File referenceDir
+    Directory referenceDir
 
     # Reference FASTA file - hg37/38
     File referenceFasta
@@ -95,7 +95,7 @@ task  variantEffectPredictor {
     String assembly
     String lofOptions
     Int bufferSize
-    File referenceDir
+    Directory referenceDir
     File referenceFasta
 
     command {
@@ -135,9 +135,11 @@ task  variantEffectPredictor {
         File out = "variantEP.vcf.gz"
     }
     runtime {
-        docker: "ensemblorg/ensembl-vep:release_95.1"
+        #docker: "ensemblorg/ensembl-vep:release_95.1 docker pull ensemblorg/ensembl-vep:release_106.1"
+        docker: "ensemblorg/ensembl-vep:release_106.1"
         cpu: "1"
         bootDiskSizeGb: "150"
+    }
     }
 
 }
