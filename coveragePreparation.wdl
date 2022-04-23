@@ -4,7 +4,7 @@ workflow prepareCoverage {
     Array[File] inputCraiFiles
 
     # Chromosome name e.g. chr22
-    String chromosomes
+    String chromosome
 
     # Reference FASTA file - hg37/hg38
     File referenceFasta
