@@ -16,7 +16,7 @@ workflow prepareVCFPercentiles {
     String lofOptions
 
     # Directory for reference data
-    Directory referenceDir
+    File referenceDir
 
     # Reference FASTA file - hg37/38
     File referenceFasta
@@ -95,7 +95,7 @@ task  variantEffectPredictor {
     String assembly
     String lofOptions
     Int bufferSize
-    Directory referenceDir
+    File referenceDir
     File referenceFasta
 
     command {
