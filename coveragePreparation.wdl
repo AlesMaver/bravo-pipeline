@@ -4,30 +4,36 @@ workflow prepareCoverage {
     Array[File] inputCraiFiles
 
     # Chromosome name e.g. chr22
-    String chromosome
+    Array[String] chromosomes
 
     # Reference FASTA file - hg37/hg38
     File referenceFasta
     # Get reference fasta cache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
     File referenceFastaCache
 
-    scatter (idx in range(length(inputCramFiles))) {
-    #scatter (file in inputCramFiles) {
-        call extractDepth {
+    scatter (chromosome in chromosomes){
+    
+        scatter (idx in range(length(inputCramFiles))) {
+            call extractDepth {
+                input: 
+                    inputCramFile = inputCramFiles[idx],
+                    inputCraiFile = inputCraiFiles[idx],
+                    chromosome = chromosome,
+                    referenceFasta = referenceFasta,
+                    referenceFastaCache = referenceFastaCache
+            }
+        }
+        call aggrBasePair {
             input: 
-                inputCramFile = inputCramFiles[idx],
-                inputCraiFile = inputCraiFiles[idx],
-                chromosome = chromosome,
-                referenceFasta = referenceFasta,
-                referenceFastaCache = referenceFastaCache
+                inputFiles = extractDepth.outDepth,
+                inputIndices = extractDepth.outIndex,
+                chromosome = chromosome
         }
     }
-    call aggrBasePair {
-        input: 
-            inputFiles = extractDepth.outDepth,
-            inputIndices = extractDepth.outIndex,
-            chromosome = chromosome
-    }
+    
+    output {
+        Array[File] aggrBasePair = aggrBasePair.outAggrBasePair
+        }
 }
 
 task extractDepth {
