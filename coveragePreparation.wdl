@@ -71,11 +71,13 @@ task aggrBasePair {
     Int endBP = 999999999
 
     command {
-        create_coverage.py -i ${write_lines(inputFiles)} aggregate -c ${chromosome} -s ${startBP} -e ${endBP} | \
-        bgzip -c > ${chromosome}.${startBP}.${endBP}.json.gz
+        create_coverage.py -i ${write_lines(inputFiles)} chunk -c ${chromosome} -s 2000000 > commands.list
+        bash commands.list
+        find $PWD -name "*bgz" > file.list
+        merge_coverage.py -i file.list -o ${chromosome}.full.json.gz
     }
     output {
-        File outAggrBasePair = "${chromosome}.${startBP}.${endBP}.json.gz"
+        File outAggrBasePair = "${chromosome}.full.json.gz"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
