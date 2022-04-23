@@ -140,7 +140,6 @@ task  variantEffectPredictor {
         cpu: "1"
         bootDiskSizeGb: "150"
     }
-    }
 
 }
 
