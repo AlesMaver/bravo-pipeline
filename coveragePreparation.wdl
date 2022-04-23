@@ -11,17 +11,18 @@ workflow prepareCoverage {
     # Get reference fasta cache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
     File referenceFastaCache
     
-        scatter (idx in range(length(inputCramFiles))) {
-            call extractDepth {
+    scatter (idx in range(length(inputCramFiles))) {
+        call extractDepth {
                 input: 
                     inputCramFile = inputCramFiles[idx],
                     inputCraiFile = inputCraiFiles[idx],
                     chromosome = chromosome,
                     referenceFasta = referenceFasta,
                     referenceFastaCache = referenceFastaCache
-            }
         }
-        call aggrBasePair {
+    }
+    
+    call aggrBasePair {
             input: 
                 inputFiles = extractDepth.outDepth,
                 inputIndices = extractDepth.outIndex,
@@ -29,7 +30,7 @@ workflow prepareCoverage {
         }
     
     output {
-        File aggrBasePair = aggrBasePair.outAggrBasePair
+        File aggrBasePair_output = aggrBasePair.outAggrBasePair
         }
 }
 
