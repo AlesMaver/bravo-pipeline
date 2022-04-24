@@ -134,7 +134,7 @@ task  variantEffectPredictor {
         --buffer_size ${bufferSize} \
         --compress_output bgzip \
         --no_stats \
-        --dir_plugins {lofteeDir} \
+        --dir_plugins ${lofteeDir} \
         -o variantEP.vcf.gz
     }
     output {
