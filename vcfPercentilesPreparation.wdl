@@ -18,6 +18,9 @@ workflow prepareVCFPercentiles {
     # Directory for reference data
     File referenceDir
 
+    # Directory for loftee
+    File lofteeDir
+
     # Reference FASTA file - hg37/38
     File referenceFasta
 
@@ -45,7 +48,8 @@ workflow prepareVCFPercentiles {
             lofOptions = lofOptions,
             bufferSize = bufferSize,
             referenceDir = referenceDir,
-            referenceFasta = referenceFasta
+            referenceFasta = referenceFasta,
+            lofteeDir = lofteeDir
     }
     call addCaddScores {
         input: chromosomeVCF = variantEffectPredictor.out,
@@ -97,10 +101,11 @@ task  variantEffectPredictor {
     Int bufferSize
     File referenceDir
     File referenceFasta
+    File lofteeDir
 
     command {
         vep -i ${chromosomeVCF} \
-        --plugin LoF,${lofOptions} \
+        --plugin LoF,loftee_path:${lofteeDir} \
         --dir_cache ${referenceDir} \
         --fasta ${referenceFasta} \
         --assembly ${assembly} \
@@ -129,13 +134,14 @@ task  variantEffectPredictor {
         --buffer_size ${bufferSize} \
         --compress_output bgzip \
         --no_stats \
+        --dir_plugins {lofteeDir} \
         -o variantEP.vcf.gz
     }
     output {
         File out = "variantEP.vcf.gz"
     }
     runtime {
-        #docker: "ensemblorg/ensembl-vep:release_95.1 docker pull ensemblorg/ensembl-vep:release_106.1"
+        #docker: "ensemblorg/ensembl-vep:release_95.1"
         docker: "ensemblorg/ensembl-vep:release_106.1"
         cpu: "1"
         bootDiskSizeGb: "150"
