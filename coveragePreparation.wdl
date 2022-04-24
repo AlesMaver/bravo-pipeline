@@ -79,9 +79,17 @@ task aggrBasePair {
         bash commands.list
         find $PWD -name "*bgz" > file.list
         merge_coverage.py -i file.list -o ${chromosome}.full.json.gz
+        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.25 -o ${chromosome}.bin_0.25.json.gz
+        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.50 -o ${chromosome}.bin_0.50.json.gz
+        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.75 -o ${chromosome}.bin_0.75.json.gz
+        prune_coverage.py -i ${chromosome}.full.json.gz -l 1.00 -o ${chromosome}.bin_1.00.json.gz
     }
     output {
         File outAggrBasePair = "${chromosome}.full.json.gz"
+        File outPruneCov0_25 = "${chromosome}.bin_0.25.json.gz"
+        File outPruneCov0_50 = "${chromosome}.bin_0.50.json.gz"
+        File outPruneCov0_75 = "${chromosome}.bin_0.75.json.gz"
+        File outPruneCov1_00 = "${chromosome}.bin_1.00.json.gz"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
