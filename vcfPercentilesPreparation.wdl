@@ -120,7 +120,7 @@ task computeAlleleCountsAndHistograms {
     File samplesFile
 
     command {
-        /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/ComputeAlleleCountsAndHistograms -i ${chromosomeVCF} -s ${samplesFile} -o computeAlleleCtHst.vcf.gz  --fields AS_InbreedingCoeff AS_QD BaseQRankSum ClippingRankSum DP ExcessHet FS InbreedingCoeff MLEAC MLEAF MQ MQRankSum QD RAW_MQ ReadPosRankSum SOR VQSLOD
+        /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/ComputeAlleleCountsAndHistograms -i ${chromosomeVCF} -s ${samplesFile} -o computeAlleleCtHst.vcf.gz  --fields AS_InbreedingCoeff AS_QD ExcessHet FS InbreedingCoeff MLEAF MQ QD RAW_MQ SOR VQSLOD
     }
     output {
         File out = "computeAlleleCtHst.vcf.gz"
