@@ -35,6 +35,8 @@ workflow prepareVCFPercentiles {
     Int numberPercentiles
     String description
 
+    String vcf_basename = basename(input_vcf, ".vcf.gz")
+
     ###############
     # Prepare VCF #
     ###############
@@ -79,9 +81,11 @@ workflow prepareVCFPercentiles {
         }
     }
     call addPercentiles {
-        input: chromosomeVCF = addCaddScores.out,
+        input: 
+            chromosomeVCF = addCaddScores.out,
             chromosomeVCFIndex = computePercentiles.outVariantPercentileIndex,
-            variantPercentiles = computePercentiles.outVariantPercentile
+            variantPercentiles = computePercentiles.outVariantPercentile,
+            vcf_basename = vcf_basename
 
     }
 }
@@ -233,12 +237,15 @@ task addPercentiles {
     File chromosomeVCF
     Array[File] chromosomeVCFIndex
     Array[File] variantPercentiles
+    String vcf_basename
 
     command {
-        add_percentiles.py -i ${chromosomeVCF} -p ${sep=' ' variantPercentiles} -o percentiles.vcf.gz
+        add_percentiles.py -i ${chromosomeVCF} -p ${sep=' ' variantPercentiles} -o ${vcf_basename}.percentiles.vcf.gz
+        tabix ${vcf_basename}.percentiles.vcf.gz
     }
     output {
-        File out = "percentiles.vcf.gz"
+        File out = "${vcf_basename}.percentiles.vcf.gz"
+        File out_index = "${vcf_basename}.percentiles.vcf.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
