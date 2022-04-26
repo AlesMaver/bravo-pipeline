@@ -92,7 +92,7 @@ task FilterVCF {
   
   command <<<
   set -e
-    bcftools +setGT ${input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools norm -m-any -f ~{referenceFasta} | bcftools view --types snps,indels | bcftools +fill-tags -Oz -o output.vcf.gz
+    bcftools +setGT ${input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools norm -m-any -f ${referenceFasta} | bcftools view --types snps,indels | bcftools +fill-tags -Oz -o output.vcf.gz
     bcftools index -t output.vcf.gz
   >>>
 
