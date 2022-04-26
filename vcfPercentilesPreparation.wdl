@@ -90,11 +90,11 @@ task FilterVCF {
   File input_vcf
   File input_vcf_index
   
-  command <<<
+  command {
   set -e
-    bcftools +setGT ~{input_vcfgz} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools +fill-tags -Oz -o output.vcf.gz
+    bcftools +setGT ~{input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools +fill-tags -Oz -o output.vcf.gz
     bcftools index -t /home/ales/vcf/output.vcf.gz
-  >>>
+  }
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
