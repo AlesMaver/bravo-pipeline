@@ -42,7 +42,8 @@ workflow prepareVCFPercentiles {
     call FilterVCF {
         input:
             input_vcf = input_vcf,
-            input_vcf_index = input_vcf_index
+            input_vcf_index = input_vcf_index,
+            referenceFasta = referenceFasta
     }
 
     call computeAlleleCountsAndHistograms {
@@ -89,6 +90,7 @@ workflow prepareVCFPercentiles {
 task FilterVCF {
   File input_vcf
   File input_vcf_index
+  File referenceFasta
   
   command <<<
   set -e
