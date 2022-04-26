@@ -92,7 +92,7 @@ task FilterVCF {
   
   command <<<
   set -e
-    bcftools +setGT ~{input_vcfgz} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools +fill-tags -Oz -o output.vcf.gz
+    bcftools +setGT ${input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools +fill-tags -Oz -o output.vcf.gz
     bcftools index -t /home/ales/vcf/output.vcf.gz
   >>>
 
