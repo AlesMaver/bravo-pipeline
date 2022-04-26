@@ -1,5 +1,3 @@
-version 1.0
-
 workflow prepareVCFPercentiles {
     ### Prepare VCF Inputs ###
     # Chromosome VCF file
@@ -89,10 +87,8 @@ workflow prepareVCFPercentiles {
 
 # Generate table of variants for interpretation
 task FilterVCF {
-  input {
-    File input_vcf
-    File input_vcf_index
-  }
+  File input_vcf
+  File input_vcf_index
   
   command <<<
   set -e
