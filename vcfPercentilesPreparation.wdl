@@ -1,7 +1,10 @@
+version 1.0
+
 workflow prepareVCFPercentiles {
     ### Prepare VCF Inputs ###
     # Chromosome VCF file
-    File chromosomeVCF
+    File input_vcf
+    File input_vcf_index
 
     # File for samples
     File samplesFile
@@ -38,8 +41,14 @@ workflow prepareVCFPercentiles {
     # Prepare VCF #
     ###############
 
+    call FilterVCF {
+        input:
+            input_vcf = input_vcf,
+            input_vcf_index = input_vcf_index
+    }
+
     call computeAlleleCountsAndHistograms {
-        input: chromosomeVCF = chromosomeVCF,
+        input: chromosomeVCF = FilterVCF.output_vcf,
             samplesFile = samplesFile,
     }
     call variantEffectPredictor {
@@ -76,6 +85,32 @@ workflow prepareVCFPercentiles {
             variantPercentiles = computePercentiles.outVariantPercentile
 
     }
+}
+
+# Generate table of variants for interpretation
+task FilterVCF {
+  input {
+    File input_vcf
+    File input_vcf_index
+  }
+  
+  command <<<
+  set -e
+    bcftools +setGT ~{input_vcfgz} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools +fill-tags -Oz -o output.vcf.gz
+    bcftools index -t /home/ales/vcf/output.vcf.gz
+  >>>
+
+  runtime {
+    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    maxRetries: 3
+    requested_memory_mb_per_core: 5000
+    cpu: 1
+    runtime_minutes: 90
+  }
+  output {
+    File output_vcf = "output.vcf.gz"
+    File output_vcf_index = "output.vcf.gz.tbi"
+  }
 }
 
 task computeAlleleCountsAndHistograms {
