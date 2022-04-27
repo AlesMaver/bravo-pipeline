@@ -45,7 +45,7 @@ scatter (chromosome in chromosomes ) {
 			chromosome = chromosome
 		}
 
-	call vcfPercentilesPreparation {
+	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
 		input:
 			input_vcf = VCFsplitter.output_vcf,
 			input_vcf_index = VCFsplitter.output_vcf_index,
