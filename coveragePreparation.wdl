@@ -31,6 +31,10 @@ workflow prepareCoverage {
     
     output {
         File aggrBasePair_output = aggrBasePair.outAggrBasePair
+        File aggrBasePair_outPruneCov0_25 = aggrBasePair.outPruneCov0_25
+        File aggrBasePair_outPruneCov0_50 = aggrBasePair.outPruneCov0_50
+        File aggrBasePair_outPruneCov0_75 = aggrBasePair.outPruneCov0_75
+        File aggrBasePair_outPruneCov1_00 = aggrBasePair.outPruneCov1_00
         }
 }
 
