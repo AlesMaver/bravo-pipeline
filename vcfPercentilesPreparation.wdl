@@ -92,9 +92,11 @@ workflow prepareVCFPercentiles {
 
 # Generate table of variants for interpretation
 task FilterVCF {
-  File input_vcf
-  File input_vcf_index
-  File referenceFasta
+    input {
+      File input_vcf
+      File input_vcf_index
+      File referenceFasta
+    }
   
   command <<<
   set -e
@@ -116,8 +118,10 @@ task FilterVCF {
 }
 
 task computeAlleleCountsAndHistograms {
-    File chromosomeVCF
-    File samplesFile
+    input {
+        File chromosomeVCF
+        File samplesFile
+    }
 
     command {
         /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/ComputeAlleleCountsAndHistograms -i ${chromosomeVCF} -s ${samplesFile} -o computeAlleleCtHst.vcf.gz  --fields AS_InbreedingCoeff AS_QD ExcessHet FS InbreedingCoeff MLEAF MQ QD RAW_MQ SOR VQSLOD
@@ -136,12 +140,14 @@ task computeAlleleCountsAndHistograms {
 }
 
 task  variantEffectPredictor {
-    File chromosomeVCF
-    String assembly
-    Int bufferSize
-    File referenceDir
-    File referenceFasta
-    File lofteeDir
+    input {
+        File chromosomeVCF
+        String assembly
+        Int bufferSize
+        File referenceDir
+        File referenceFasta
+        File lofteeDir
+    }
 
     command {
         vep -i ${chromosomeVCF} \
@@ -190,9 +196,11 @@ task  variantEffectPredictor {
 }
 
 task addCaddScores {
-    File chromosomeVCF
-    File cadScores
-    File cadScoresIndex
+    input {
+        File chromosomeVCF
+        File cadScores
+        File cadScoresIndex
+    }
 
     command {
         add_cadd_scores.py -i ${chromosomeVCF} -c ${cadScores} -o annotated.vcf.gz
@@ -208,11 +216,13 @@ task addCaddScores {
 }
 
 task computePercentiles {
-    File chromosomeVCF
-    String infoField
-    Int threads
-    Int numberPercentiles
-    String description
+    input {
+        File chromosomeVCF
+        String infoField
+        Int threads
+        Int numberPercentiles
+        String description
+    }
 
     command <<<
         ComputePercentiles -i ${chromosomeVCF} \
@@ -237,10 +247,12 @@ task computePercentiles {
 }
 
 task addPercentiles {
-    File chromosomeVCF
-    Array[File] chromosomeVCFIndex
-    Array[File] variantPercentiles
-    String vcf_basename
+    input {
+        File chromosomeVCF
+        Array[File] chromosomeVCFIndex
+        Array[File] variantPercentiles
+        String vcf_basename
+    }
 
     command {
         add_percentiles.py -i ${chromosomeVCF} -p ${sep=' ' variantPercentiles} -o ${vcf_basename}.percentiles.vcf.gz
