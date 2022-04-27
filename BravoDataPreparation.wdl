@@ -41,7 +41,7 @@ scatter (chromosome in chromosomes ) {
 	call VCFsplitter {
 		input:
 			input_vcf = input_vcf,
-			input_vcf_index = input_vcf_index
+			input_vcf_index = input_vcf_index,
 			chromosome = chromosome
 		}
 
