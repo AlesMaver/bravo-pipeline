@@ -2,37 +2,39 @@ version 1.0
 
 workflow prepareVCFPercentiles {
     ### Prepare VCF Inputs ###
-    # Chromosome VCF file
-    File input_vcf
-    File input_vcf_index
+    input {
+        # Chromosome VCF file
+        File input_vcf
+        File input_vcf_index
 
-    # File for samples
-    File samplesFile
+        # File for samples
+        File samplesFile
 
-    # Size of memory buffer to use
-    Int bufferSize  = 100000
+        # Size of memory buffer to use
+        Int bufferSize  = 100000
 
-    # HG37/H38
-    String assembly = "GRCh38"
+        # HG37/H38
+        String assembly = "GRCh38"
 
-    # Directory for reference data
-    File referenceDir
+        # Directory for reference data
+        File referenceDir
 
-    # Directory for loftee
-    File lofteeDir
+        # Directory for loftee
+        File lofteeDir
 
-    # Reference FASTA file - hg37/38
-    File referenceFasta
+        # Reference FASTA file - hg37/38
+        File referenceFasta
 
-    # CAD score files and associated index files
-    File cadScores
-    File cadScoresIndex
+        # CAD score files and associated index files
+        File cadScores
+        File cadScoresIndex
 
-    ### Prepare percentiles ###
-    Array[String] infoFields
-    Int threads = 10
-    Int numberPercentiles = 10
-    String description = "Description"
+        ### Prepare percentiles ###
+        Array[String] infoFields
+        Int threads = 10
+        Int numberPercentiles = 10
+        String description = "Description"
+    }
 
     String vcf_basename = basename(input_vcf, ".vcf.gz")
 
