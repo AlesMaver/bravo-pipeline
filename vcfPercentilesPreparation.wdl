@@ -107,7 +107,7 @@ task FilterVCF {
   
   command <<<
   set -e
-    bcftools +setGT ${input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools norm -m-any -f ${referenceFasta} | bcftools view --types snps,indels | bcftools +fill-tags -Oz -o output.vcf.gz
+    bcftools +setGT ~{input_vcf} -- -t q -n . -i' FORMAT/GQ<=90' | bcftools norm -m-any -f ~{referenceFasta} | bcftools view --types snps,indels | bcftools +fill-tags -Oz -o output.vcf.gz
     bcftools index -t output.vcf.gz
   >>>
 
@@ -131,7 +131,7 @@ task computeAlleleCountsAndHistograms {
     }
 
     command {
-        /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/ComputeAlleleCountsAndHistograms -i ${chromosomeVCF} -s ${samplesFile} -o computeAlleleCtHst.vcf.gz  --fields AS_InbreedingCoeff AS_QD ExcessHet FS InbreedingCoeff MLEAF MQ QD RAW_MQ SOR VQSLOD
+        /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/ComputeAlleleCountsAndHistograms -i ~{chromosomeVCF} -s ~{samplesFile} -o computeAlleleCtHst.vcf.gz  --fields AS_InbreedingCoeff AS_QD ExcessHet FS InbreedingCoeff MLEAF MQ QD RAW_MQ SOR VQSLOD
     }
     output {
         File out = "computeAlleleCtHst.vcf.gz"
@@ -157,11 +157,11 @@ task  variantEffectPredictor {
     }
 
     command {
-        vep -i ${chromosomeVCF} \
-        --plugin LoF,loftee_path:${lofteeDir} \
-        --dir_cache ${referenceDir} \
-        --fasta ${referenceFasta} \
-        --assembly ${assembly} \
+        vep -i ~{chromosomeVCF} \
+        --plugin LoF,loftee_path:~{lofteeDir} \
+        --dir_cache ~{referenceDir} \
+        --fasta ~{referenceFasta} \
+        --assembly ~{assembly} \
         --cache \
         --offline \
         --vcf \
@@ -184,10 +184,10 @@ task  variantEffectPredictor {
         --allele_number \
         --format vcf \
         --force \
-        --buffer_size ${bufferSize} \
+        --buffer_size ~{bufferSize} \
         --compress_output bgzip \
         --no_stats \
-        --dir_plugins ${lofteeDir} \
+        --dir_plugins ~{lofteeDir} \
         -o variantEP.vcf.gz
     }
     output {
@@ -210,7 +210,7 @@ task addCaddScores {
     }
 
     command {
-        add_cadd_scores.py -i ${chromosomeVCF} -c ${cadScores} -o annotated.vcf.gz
+        add_cadd_scores.py -i ~{chromosomeVCF} -c ~{cadScores} -o annotated.vcf.gz
     }
     output {
         File out = "annotated.vcf.gz"
@@ -232,19 +232,19 @@ task computePercentiles {
     }
 
     command <<<
-        ComputePercentiles -i ${chromosomeVCF} \
-        -m ${infoField} \
-        -t ${threads} \
-        -p ${numberPercentiles} \
-        -d ${description}_${infoField} \
-        -o ${infoField}
+        ComputePercentiles -i ~{chromosomeVCF} \
+        -m ~{infoField} \
+        -t ~{threads} \
+        -p ~{numberPercentiles} \
+        -d ~{description}_~{infoField} \
+        -o ~{infoField}
 
-        tabix ${infoField}.variant_percentile.vcf.gz
+        tabix ~{infoField}.variant_percentile.vcf.gz
     >>>
     output {
-        File outAllPercentiles = "${infoField}.all_percentiles.json.gz"
-        File outVariantPercentile = "${infoField}.variant_percentile.vcf.gz"
-        File outVariantPercentileIndex = "${infoField}.variant_percentile.vcf.gz.tbi"
+        File outAllPercentiles = "~{infoField}.all_percentiles.json.gz"
+        File outVariantPercentile = "~{infoField}.variant_percentile.vcf.gz"
+        File outVariantPercentileIndex = "~{infoField}.variant_percentile.vcf.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
@@ -262,12 +262,12 @@ task addPercentiles {
     }
 
     command {
-        add_percentiles.py -i ${chromosomeVCF} -p ${sep=' ' variantPercentiles} -o ${vcf_basename}.percentiles.vcf.gz
-        tabix ${vcf_basename}.percentiles.vcf.gz
+        add_percentiles.py -i ~{chromosomeVCF} -p ~{sep=' ' variantPercentiles} -o ~{vcf_basename}.percentiles.vcf.gz
+        tabix ~{vcf_basename}.percentiles.vcf.gz
     }
     output {
-        File out = "${vcf_basename}.percentiles.vcf.gz"
-        File out_index = "${vcf_basename}.percentiles.vcf.gz.tbi"
+        File out = "~{vcf_basename}.percentiles.vcf.gz"
+        File out_index = "~{vcf_basename}.percentiles.vcf.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
