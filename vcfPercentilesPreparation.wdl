@@ -8,13 +8,10 @@ workflow prepareVCFPercentiles {
     File samplesFile
 
     # Size of memory buffer to use
-    Int bufferSize
+    Int bufferSize  = 100000
 
     # HG37/H38
-    String assembly
-
-    # Optional input for VEP lof plugin
-    String lofOptions
+    String assembly = "GRCh38"
 
     # Directory for reference data
     File referenceDir
@@ -31,9 +28,9 @@ workflow prepareVCFPercentiles {
 
     ### Prepare percentiles ###
     Array[String] infoFields
-    Int threads
-    Int numberPercentiles
-    String description
+    Int threads = 10
+    Int numberPercentiles = 10
+    String description = "Description"
 
     String vcf_basename = basename(input_vcf, ".vcf.gz")
 
@@ -55,7 +52,6 @@ workflow prepareVCFPercentiles {
     call variantEffectPredictor {
         input: chromosomeVCF = computeAlleleCountsAndHistograms.out,
             assembly = assembly,
-            lofOptions = lofOptions,
             bufferSize = bufferSize,
             referenceDir = referenceDir,
             referenceFasta = referenceFasta,
@@ -133,7 +129,6 @@ task computeAlleleCountsAndHistograms {
 task  variantEffectPredictor {
     File chromosomeVCF
     String assembly
-    String lofOptions
     Int bufferSize
     File referenceDir
     File referenceFasta
@@ -215,7 +210,7 @@ task computePercentiles {
         -m ${infoField} \
         -t ${threads} \
         -p ${numberPercentiles} \
-        -d ${description} \
+        -d ${description}_${infoField} \
         -o ${infoField}
 
         tabix ${infoField}.variant_percentile.vcf.gz
