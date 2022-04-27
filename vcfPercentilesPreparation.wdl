@@ -1,3 +1,5 @@
+version 1.0
+
 workflow prepareVCFPercentiles {
     ### Prepare VCF Inputs ###
     # Chromosome VCF file
@@ -122,6 +124,11 @@ task computeAlleleCountsAndHistograms {
         File out = "computeAlleleCtHst.vcf.gz"
     }
     runtime {
+        # Docker "alesmaver/bravo-pipeline-sgp:latest" prepared using the following steps
+        # docker run -it statgen/bravo-pipeline
+        # git clone https://github.com/statgen/bravo_data_prep.git
+        # cd bravo_data_prep/data_prep/cpp_tools/
+        # cget install .
         docker: "alesmaver/bravo-pipeline-sgp:latest"
     }
 }
