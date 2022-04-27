@@ -88,6 +88,13 @@ workflow prepareVCFPercentiles {
             vcf_basename = vcf_basename
 
     }
+
+  # Outputs that will be retained when execution is complete
+  output {
+    File output_vcf = addPercentiles.out
+    File output_vcf_index = addPercentiles.out_index
+  }
+
 }
 
 # Generate table of variants for interpretation
