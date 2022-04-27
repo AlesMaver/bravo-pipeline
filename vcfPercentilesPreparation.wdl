@@ -53,14 +53,23 @@ workflow prepareVCFPercentiles {
         input: chromosomeVCF = FilterVCF.output_vcf,
             samplesFile = samplesFile,
     }
+
+    call AddOriginalVCFAnnotations {
+        input:
+            original_input_vcf = FilterVCF.output_vcf,
+            original_input_vcf_index = FilterVCF.output_vcf_index,
+            analysed_vcf = computeAlleleCountsAndHistograms.out
+    }
+
     call variantEffectPredictor {
-        input: chromosomeVCF = computeAlleleCountsAndHistograms.out,
+        input: chromosomeVCF = AddOriginalVCFAnnotations.output_vcf,
             assembly = assembly,
             bufferSize = bufferSize,
             referenceDir = referenceDir,
             referenceFasta = referenceFasta,
             lofteeDir = lofteeDir
     }
+
     call addCaddScores {
         input: chromosomeVCF = variantEffectPredictor.out,
             cadScores = cadScores,
@@ -144,6 +153,34 @@ task computeAlleleCountsAndHistograms {
         # cget install .
         docker: "alesmaver/bravo-pipeline-sgp:latest"
     }
+}
+
+# Generate table of variants for interpretation
+task AddOriginalVCFAnnotations {
+    input {
+      File original_input_vcf
+      File original_input_vcf_index
+      File analysed_vcf
+    }
+  
+  command <<<
+  set -e
+    bcftools index -t ~{analysed_vcf}
+    bcftools annotate -a ~{original_input_vcf} -c +INFO ~{analysed_vcf} -Oz -o output.vcf.gz
+    bcftools index -t output.vcf.gz
+  >>>
+
+  runtime {
+    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    maxRetries: 3
+    requested_memory_mb_per_core: 5000
+    cpu: 1
+    runtime_minutes: 90
+  }
+  output {
+    File output_vcf = "output.vcf.gz"
+    File output_vcf_index = "output.vcf.gz.tbi"
+  }
 }
 
 task  variantEffectPredictor {
