@@ -30,9 +30,6 @@ workflow BravoDataPreparation {
 
     ### Prepare percentiles ###
     Array[String] infoFields
-    Int threads
-    Int numberPercentiles
-    String description
 
     String vcf_basename = basename(input_vcf, ".vcf.gz")
   }
