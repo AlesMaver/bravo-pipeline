@@ -94,7 +94,7 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome}:10000000-20000000 ~{input_vcf} -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome}:10000000-11000000 ~{input_vcf} -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{chromosome}.~{vcf_basename}.vcf.gz
   }
   runtime {
