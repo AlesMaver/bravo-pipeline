@@ -100,6 +100,7 @@ workflow prepareVCFPercentiles {
 
   # Outputs that will be retained when execution is complete
   output {
+    File output_annotated_vcf = addCaddScores.out
     File output_vcf = addPercentiles.out
     File output_vcf_index = addPercentiles.out_index
     Array[File] out_metrics = computePercentiles.outAllPercentiles

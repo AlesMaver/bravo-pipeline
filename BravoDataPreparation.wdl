@@ -66,13 +66,37 @@ scatter (chromosome in chromosomes ) {
         referenceFasta = referenceFasta,
         sampleLocationFile = sampleLocationFile
     }
-  # Close per chromosome scatter
+  } # Close per chromosome scatter
+
+  # Concatenate VCFs from prepare percentiles task
+  call concatVcf {
+    input:
+      input_vcfs = prepareVCFs.output_annotated_vcf
   }
 
+  scatter (field in infoFields) {
+      call vcfPercentilesPreparation.computePercentiles as computePercentiles {
+          input: chromosomeVCF = concatVcf.output_vcf,
+              infoField = field,
+              threads = threads,
+              numberPercentiles = numberPercentiles,
+              description = description
+      }
+  }
+
+  call vcfPercentilesPreparation.addPercentiles as addPercentiles {
+    input: 
+      chromosomeVCF = concatVcf.output_vcf,
+      chromosomeVCFIndex = concatVcf.output_vcf_index,
+      variantPercentiles = computePercentiles.outVariantPercentile,
+      vcf_basename = "all"
+    }
+
   output {
-    Array[File] output_vcfs = prepareVCFs.output_vcf
-    Array[File] output_vcfs_indices = prepareVCFs.output_vcf_index
-    Array[Array[File]] out_metrics_files = prepareVCFs.out_metrics
+    File output_vcf = addPercentiles.out
+    File output_vcfs_indices = addPercentiles.out_index
+    #Array[Array[File]] out_metrics_files = prepareVCFs.out_metrics
+    Array out_metrics_files = addPercentiles.outAllPercentiles
     Array[File] out_crams = prepareCRAMs.combined_cram_result
     Array[File] out_crais = prepareCRAMs.combined_cram_result_index
   }
@@ -105,7 +129,34 @@ task VCFsplitter {
     runtime_minutes: 180
   }
   output {
-    File output_vcf = "~{vcf_basename}.~{vcf_basename}.vcf.gz"
-    File output_vcf_index = "~{vcf_basename}.~{vcf_basename}.vcf.gz.tbi"
+    File output_vcf = "~{chromosome}.~{vcf_basename}.vcf.gz"
+    File output_vcf_index = "~{chromosome}.~{vcf_basename}.vcf.gz.tbi"
+  }
+}
+
+
+task concatVcf {
+    input {
+      Array[File] input_vcfs
+      Array[File] input_vcfs_indices
+    }
+  
+  command <<<
+  set -e
+    for i in ~{sep=" " input_vcfs} ; bcftools index -t $i
+    bcftools concat ~{sep=" input_vcfs} -Oz -o output.vcf.gz
+    bcftools index -t output.vcf.gz
+  >>>
+
+  runtime {
+    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    maxRetries: 3
+    requested_memory_mb_per_core: 5000
+    cpu: 1
+    runtime_minutes: 90
+  }
+  output {
+    File output_vcf = "output.vcf.gz"
+    File output_vcf_index = "output.vcf.gz.tbi"
   }
 }
