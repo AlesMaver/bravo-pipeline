@@ -58,7 +58,7 @@ scatter (chromosome in chromosomes ) {
 			infoFields = infoFields
 		}
 
-    call cramPreparation.cramPreparation as prepareCRAMs {
+    call cramPreparation.prepareCram as prepareCRAMs {
       input:
         chromosome = chromosome,
         chromosomeVCF = prepareVCFs.output_vcf,
