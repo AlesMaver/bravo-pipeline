@@ -71,7 +71,7 @@ scatter (chromosome in chromosomes ) {
 
   output {
     Array[File] output_vcfs = prepareVCFs.output_vcf
-    Array[File] output_vcfs_indices =  = prepareVCFs.output_vcf_index
+    Array[File] output_vcfs_indices = prepareVCFs.output_vcf_index
     Array[File] out_metrics_files = prepareVCFs.out_metrics
     Array[File] out_crams = prepareCRAMs.combined_cram_result
     Array[File] out_crais = prepareCRAMs.combined_cram_result_index
