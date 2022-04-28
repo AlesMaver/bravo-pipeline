@@ -102,7 +102,7 @@ workflow prepareVCFPercentiles {
   output {
     File output_vcf = addPercentiles.out
     File output_vcf_index = addPercentiles.out_index
-    File out_metrics = computePercentiles.outAllPercentiles
+    Array[File] out_metrics = computePercentiles.outAllPercentiles
   }
 
 }
