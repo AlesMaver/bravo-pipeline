@@ -3,6 +3,7 @@ version 1.0
 
 # Subworkflows
 import "https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/vcfPercentilesPreparation.wdl" as vcfPercentilesPreparation
+import "https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/cramPreparation.wdl" as cramPreparation
 
 # WORKFLOW DEFINITION 
 workflow BravoDataPreparation {
@@ -14,6 +15,8 @@ workflow BravoDataPreparation {
 
     # File for samples
     File samplesFile
+    # List of sampls and cram file locations for CRAM generation step
+    File sampleLocationFile
 
     # Directory for reference data
     File referenceDir
@@ -54,7 +57,26 @@ scatter (chromosome in chromosomes ) {
 			cadScoresIndex = cadScoresIndex,
 			infoFields = infoFields
 		}
-	}
+
+    call cramPreparation.cramPreparation as prepareCRAMs {
+      input:
+        chromosome = chromosome,
+        chromosomeVCF = prepareVCFs.output_vcf,
+        samplesFile = samplesFile,
+        referenceFasta = referenceFasta,
+        sampleLocationFile = sampleLocationFile
+    }
+  # Close per chromosome scatter
+  }
+
+  output {
+    Array[File] output_vcfs = prepareVCFs.output_vcf
+    Array[File] output_vcfs_indices =  = prepareVCFs.output_vcf_index
+    Array[File] out_metrics_files = prepareVCFs.out_metrics
+    Array[File] out_crams = prepareCRAMs.combined_cram_result
+    Array[File] out_crais = prepareCRAMs.combined_cram_result_index
+  }
+# Close workflow
 }  
 
 
@@ -72,8 +94,8 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome}:10000000-20000000 ~{input_vcf} -Oz -o ~{vcf_basename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{vcf_basename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome}:10000000-20000000 ~{input_vcf} -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
+    bcftools index -t ~{chromosome}.~{vcf_basename}.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"

@@ -102,6 +102,7 @@ workflow prepareVCFPercentiles {
   output {
     File output_vcf = addPercentiles.out
     File output_vcf_index = addPercentiles.out_index
+    File out_metrics = computePercentiles.outAllPercentiles
   }
 
 }
@@ -147,10 +148,16 @@ task computeAlleleCountsAndHistograms {
     }
     runtime {
         # Docker "alesmaver/bravo-pipeline-sgp:latest" prepared using the following steps
+        # This docker was necessary for the carry-over of field annotations to the resulting VCF files
         # docker run -it statgen/bravo-pipeline
         # git clone https://github.com/statgen/bravo_data_prep.git
         # cd bravo_data_prep/data_prep/cpp_tools/
         # cget install .
+        #
+        # Also installing python3
+        # apt-get install python3-pip
+        # pip3 install pysam
+
         docker: "alesmaver/bravo-pipeline-sgp:latest"
     }
 }
