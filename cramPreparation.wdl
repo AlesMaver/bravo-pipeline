@@ -70,7 +70,7 @@ task prepareSequences {
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
     command {
-        python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences.py cram -i ~{chromosomeVCF} -c ~{sep=' ' sampleFiles} -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
+        python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences.py cram -i ~{chromosomeVCF} -c ~{sampleLocationFile} -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
         samtools index ~{chromosome}.cram
     }
     output {
