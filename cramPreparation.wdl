@@ -6,6 +6,7 @@ workflow prepareCram {
     # VCF file for chromosome
     String chromosome
     File chromosomeVCF
+    File chromosomeVCFIndex
 
     # File for samples
     File samplesFile
@@ -19,13 +20,17 @@ workflow prepareCram {
     }
 
     call extractId {
-        input: chromosomeVCF = chromosomeVCF,
+        input: 
+            chromosomeVCF = chromosomeVCF,
+            chromosomeVCFIndex = chromosomeVCFIndex,
             samplesFile = samplesFile
     }
     call prepareSequences {
         input: 
             chromosome = chromosome,
-            chromosomeVCF = chromosomeVCF,
+            input_vcf = chromosomeVCF,
+            chromosomeVCF = extractId.out,
+            chromosomeVCFIndex = extractId.out_index,
             sampleLocationFile = sampleLocationFile,
             #sampleIndexLocationFile = sampleIndexLocationFile,
             referenceFasta = referenceFasta
@@ -39,18 +44,22 @@ workflow prepareCram {
 task extractId {
     input {
         File chromosomeVCF
+        File chromosomeVCFIndex
         File samplesFile
         String sample = basename(chromosomeVCF, ".vcf.gz")
     }
     
     command {
-        RandomHetHom -k 5 -e 1985 -i ~{chromosomeVCF} -s ~{samplesFile} -o ~{sample}.vcf.gz
+        bcftools query -l ~{chromosomeVCF} > samples.txt
+        /srv/data/bravo_data_prep/data_prep/cpp_tools/cget/bin/RandomHetHom -k 5 -e 1234 -i ~{chromosomeVCF} -s samples.txt -o ~{sample}.vcf.gz
+        tabix ~{sample}.vcf.gz
     }
     output {
         File out = "~{sample}.vcf.gz"
+        File out_index = "~{sample}.vcf.gz.tbi"
     }
     runtime {
-        docker: "statgen/bravo-pipeline:latest"
+        docker: "alesmaver/bravo-pipeline-sgp"
         cpu: "1"
         bootDiskSizeGb: "50"
     }
@@ -59,7 +68,9 @@ task extractId {
 task prepareSequences {
     input {
         String chromosome
+        File input_vcf
         File chromosomeVCF
+        File chromosomeVCFIndex
         File sampleLocationFile
         #File sampleIndexLocationFile
         File referenceFasta
@@ -69,13 +80,20 @@ task prepareSequences {
     # Array[File] sampleFiles = read_lines(sampleLocationFile)
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
-    command {
-        python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences.py cram -i ~{chromosomeVCF} -c ~{sampleLocationFile} -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
+    command <<<
+        bcftools query -l ~{input_vcf} | awk '{print $0, "/mnt/dataSeq/DATA_REPOSITORY/GVCFS_HG38/"$0"/"$0".cram", "/mnt/dataSeq/DATA_REPOSITORY/GVCFS_HG38/"$0"/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
+        python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
         samtools index ~{chromosome}.cram
-    }
+        samtools sort ~{chromosome}.cram -o ~{chromosome}.bam
+        samtools index ~{chromosome}.bam
+        rm ~{chromosome}.cram*
+        samtools view -T ~{referenceFasta} -O CRAM ~{chromosome}.bam -o ~{chromosome}.cram
+        samtools index ~{chromosome}.cram
+        rm ~{chromosome}.bam*
+    >>>
     output {
-        File combined_cram = "combined.cram"
-        File combined_cram_index = "combined.cram.crai"
+        File combined_cram = "~{chromosome}.cram"
+        File combined_cram_index = "~{chromosome}.cram.crai"
     }
     runtime {
         docker: "alesmaver/bravo-pipeline-sgp:latest"

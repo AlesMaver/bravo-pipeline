@@ -17,10 +17,10 @@ workflow prepareVCFPercentiles {
         String assembly = "GRCh38"
 
         # Directory for reference data
-        File referenceDir
+        #File referenceDir
 
         # Directory for loftee
-        File lofteeDir
+        #File lofteeDir
 
         # Reference FASTA file - hg37/38
         File referenceFasta
@@ -50,14 +50,14 @@ workflow prepareVCFPercentiles {
     }
 
     call computeAlleleCountsAndHistograms {
-        input: chromosomeVCF = FilterVCF.output_vcf,
+        input: chromosomeVCF = input_vcf,
             samplesFile = samplesFile,
     }
 
     call AddOriginalVCFAnnotations {
         input:
-            original_input_vcf = FilterVCF.output_vcf,
-            original_input_vcf_index = FilterVCF.output_vcf_index,
+            original_input_vcf = input_vcf,
+            original_input_vcf_index = input_vcf_index,
             analysed_vcf = computeAlleleCountsAndHistograms.out
     }
 
@@ -65,9 +65,9 @@ workflow prepareVCFPercentiles {
         input: chromosomeVCF = AddOriginalVCFAnnotations.output_vcf,
             assembly = assembly,
             bufferSize = bufferSize,
-            referenceDir = referenceDir,
+            #referenceDir = referenceDir,
             referenceFasta = referenceFasta,
-            lofteeDir = lofteeDir
+            #lofteeDir = lofteeDir
     }
 
     call addCaddScores {
@@ -80,30 +80,31 @@ workflow prepareVCFPercentiles {
     # Prepare percentiles #
     #######################
 
-    scatter (field in infoFields) {
-        call computePercentiles {
-            input: chromosomeVCF = addCaddScores.out,
-                infoField = field,
-                threads = threads,
-                numberPercentiles = numberPercentiles,
-                description = description
-        }
-    }
-    call addPercentiles {
-        input: 
-            chromosomeVCF = addCaddScores.out,
-            chromosomeVCFIndex = computePercentiles.outVariantPercentileIndex,
-            variantPercentiles = computePercentiles.outVariantPercentile,
-            vcf_basename = vcf_basename
-
-    }
+    #scatter (field in infoFields) {
+    #    call computePercentiles {
+    #        input: chromosomeVCF = addCaddScores.out,
+    #            infoField = field,
+    #            threads = threads,
+    #            numberPercentiles = numberPercentiles,
+    #            description = description
+    #    }
+    #}
+    #call addPercentiles {
+    #    input: 
+    #        chromosomeVCF = addCaddScores.out,
+    #        chromosomeVCFIndex = addCaddScores.out_index,
+    #        variantPercentiles = computePercentiles.outVariantPercentile,
+    #        vcf_basename = vcf_basename
+    #
+    #}
 
   # Outputs that will be retained when execution is complete
   output {
     File output_annotated_vcf = addCaddScores.out
-    File output_vcf = addPercentiles.out
-    File output_vcf_index = addPercentiles.out_index
-    Array[File] out_metrics = computePercentiles.outAllPercentiles
+    File output_annotated_vcf_index = addCaddScores.out_index
+    #File output_vcf = addPercentiles.out
+    #File output_vcf_index = addPercentiles.out_index
+    #Array[File] out_metrics = computePercentiles.outAllPercentiles
   }
 
 }
@@ -196,15 +197,15 @@ task  variantEffectPredictor {
         File chromosomeVCF
         String assembly
         Int bufferSize
-        File referenceDir
+        #File referenceDir
         File referenceFasta
-        File lofteeDir
+        #File lofteeDir
     }
 
     command {
         vep -i ~{chromosomeVCF} \
-        --plugin LoF,loftee_path:~{lofteeDir} \
-        --dir_cache ~{referenceDir} \
+        --plugin LoF,loftee_path:/opt/vep/plugins/loftee/ \
+        --dir_cache /opt/vep/.vep/ \
         --fasta ~{referenceFasta} \
         --assembly ~{assembly} \
         --cache \
@@ -232,7 +233,7 @@ task  variantEffectPredictor {
         --buffer_size ~{bufferSize} \
         --compress_output bgzip \
         --no_stats \
-        --dir_plugins ~{lofteeDir} \
+        --dir_plugins /opt/vep/plugins/loftee/ \
         -o variantEP.vcf.gz
     }
     output {
@@ -240,7 +241,8 @@ task  variantEffectPredictor {
     }
     runtime {
         #docker: "ensemblorg/ensembl-vep:release_95.1"
-        docker: "ensemblorg/ensembl-vep:release_106.1"
+        #docker: "ensemblorg/ensembl-vep:release_106.1"
+        docker: "alesmaver/vep"
         cpu: "1"
         bootDiskSizeGb: "150"
     }
@@ -256,9 +258,11 @@ task addCaddScores {
 
     command {
         add_cadd_scores.py -i ~{chromosomeVCF} -c ~{cadScores} -o annotated.vcf.gz
+        tabix annotated.vcf.gz
     }
     output {
         File out = "annotated.vcf.gz"
+        File out_index = "annotated.vcf.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
@@ -301,8 +305,9 @@ task computePercentiles {
 task addPercentiles {
     input {
         File chromosomeVCF
-        Array[File] chromosomeVCFIndex
+        File chromosomeVCFIndex
         Array[File] variantPercentiles
+        Array[File] variantPercentilesIndex
         String vcf_basename
     }
 

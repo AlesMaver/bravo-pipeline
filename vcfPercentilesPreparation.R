@@ -1,17 +1,13 @@
 library("CMG")
 
-WORKFLOW="prepareVCFPercentiles"
+WORKFLOW="BravoDataPreparation"
 WDLParamList <- list()
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "chromosomeVCF", INPUT = "/home/cmg/CMGpipeline_devel/bravo-pipeline/DataPrep/test/input.vcf.gz")
+                            WORKFLOW = WORKFLOW, INPUT_NAME = "input_vcf", INPUT = "/home/ales/JOINT_COHORTS/cohort1/VCF_MERGED$ tabix merged.vcf.gz")
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "samplesFile", INPUT = "/home/cmg/CMGpipeline_devel/bravo-pipeline/DataPrep/test/samples.txt")
+                            WORKFLOW = WORKFLOW, INPUT_NAME = "input_vcf_index", INPUT = "/home/ales/JOINT_COHORTS/cohort1/VCF_MERGED$ tabix merged.vcf.gz.tbi")
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "assembly", INPUT = "GRCh38")
-WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "bufferSize", INPUT = 100000)
-WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "lofOptions", INPUT = "")
+                            WORKFLOW = WORKFLOW, INPUT_NAME = "samplesFile", INPUT = "/home/ales/JOINT_COHORTS/cohort1/cohort1.samples.txt")
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
                             WORKFLOW = WORKFLOW, INPUT_NAME = "lofteeDir", INPUT = "/mnt/dataSeq/CROMWELL/vep_reference/vep_data/loftee/")
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
@@ -23,14 +19,8 @@ WDLParamList <- addWDLInput(WDLParamList = WDLParamList,
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
                             WORKFLOW = WORKFLOW, INPUT_NAME = "cadScoresIndex", INPUT = "/mnt/dataSeq/CROMWELL/vep_reference/cadd_scores/whole_genome_SNVs.tsv.gz.tbi")
 WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "infoFields", INPUT = list("AVGDP"))
-WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "threads", INPUT = 10)
-WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "numberPercentiles", INPUT = 10)
-WDLParamList <- addWDLInput(WDLParamList = WDLParamList, 
-                            WORKFLOW = WORKFLOW, INPUT_NAME = "description", INPUT = "Description")
-
+                            WORKFLOW = WORKFLOW, INPUT_NAME = "infoFields", INPUT = list("AVGDP", "VQSLOD", "SOR", "AS_InbreedingCoeff", "AS_QD", "ExcessHet", "FS", "InbreedingCoeff", "MLEAF", "MQ", "QD", "RAW_MQ"))
+# AS_InbreedingCoeff AS_QD BaseQRankSum ClippingRankSum DP ExcessHet FS InbreedingCoeff MLEAC MLEAF MQ MQRankSum QD RAW_MQ ReadPosRankSum SOR VQSLOD
 
 CromwellOptionList<-list()
 CromwellOptionList <- makeDefaultOptionList(CromwellOptionList = CromwellOptionList,
@@ -43,7 +33,7 @@ CromwellOptionList <- makeDefaultOptionList(CromwellOptionList = CromwellOptionL
 POST_RESPONSE = submitWF(EXOME = "PX0000",
                          CromwellHost = CONFIG_LIST["CROMWELL_HOST"],
                          CromwellPort = CONFIG_LIST[["CROMWELL_PORT_CONIFER"]][CromwellServ],
-                         WFUrl = "https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/vcfPercentilesPreparation.wdl",
+                         WFUrl = "https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl",
                          InputsJsonList = WDLParamList,
                          OptionsJsonList = CromwellOptionList,
                          LabelsJsonList = list(sample=EXOME))
