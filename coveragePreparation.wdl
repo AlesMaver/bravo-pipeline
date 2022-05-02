@@ -30,6 +30,8 @@ workflow prepareCoverage {
         }
     
     output {
+        Array[File] extractDepthFiles = extractDepth.outDepth
+        Array[File] extractDepthIndices = extractDepth.outIndex
         File aggrBasePair_output = aggrBasePair.outAggrBasePair
         File aggrBasePair_outPruneCov0_25 = aggrBasePair.outPruneCov0_25
         File aggrBasePair_outPruneCov0_50 = aggrBasePair.outPruneCov0_50
@@ -47,11 +49,11 @@ task extractDepth {
     String sample = basename(inputCramFile, ".bam")
 
     command {
-        tar xzf ${referenceFastaCache}
-        export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
-        export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
+        #tar xzf ${referenceFastaCache}
+        #export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
+        #export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
     
-        samtools view -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
+        samtools view -T ${referenceFasta} -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
         samtools calmd -uAEr - ${referenceFasta} | \
         bam clipOverlap --in -.ubam --out -.ubam | \
         samtools mpileup -f ${referenceFasta} -Q 20 -t DP - | \
@@ -79,7 +81,9 @@ task aggrBasePair {
     Int endBP = 999999999
 
     command {
-        create_coverage.py -i ${write_lines(inputFiles)} chunk -c ${chromosome} -s 2000000 > commands.list
+        # Filter out any empty files which may break the processing
+        cat ${write_lines(inputFiles)} | xargs du | awk '$1>50' | cut -f 2 > files.txt
+        create_coverage.py -i files.txt chunk -c ${chromosome} -s 2000000 > commands.list
         bash commands.list
         find $PWD -name "*bgz" > file.list
         merge_coverage.py -i file.list -o ${chromosome}.full.json.gz

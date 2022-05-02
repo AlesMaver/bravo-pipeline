@@ -202,9 +202,11 @@ task  variantEffectPredictor {
         #File lofteeDir
     }
 
-    command {
+    command <<<
+        PERL5LIB=$PERL5LIB:/opt/vep/plugins/loftee/
+
         vep -i ~{chromosomeVCF} \
-        --plugin LoF,loftee_path:/opt/vep/plugins/loftee/ \
+        --plugin LoF,loftee_path:/opt/vep/plugins/loftee/,human_ancestor_fa:/opt/vep/plugins/loftee/data/human_ancestor.fa.gz,conservation_file:/opt/vep/plugins/loftee/data/phylocsf_gerp.sql  \
         --dir_cache /opt/vep/.vep/ \
         --fasta ~{referenceFasta} \
         --assembly ~{assembly} \
@@ -233,16 +235,17 @@ task  variantEffectPredictor {
         --buffer_size ~{bufferSize} \
         --compress_output bgzip \
         --no_stats \
+        --fork 8 \
         --dir_plugins /opt/vep/plugins/loftee/ \
         -o variantEP.vcf.gz
-    }
+    >>>
     output {
         File out = "variantEP.vcf.gz"
     }
     runtime {
         #docker: "ensemblorg/ensembl-vep:release_95.1"
         #docker: "ensemblorg/ensembl-vep:release_106.1"
-        docker: "alesmaver/vep"
+        docker: "alesmaver/vep:testing"
         cpu: "1"
         bootDiskSizeGb: "150"
     }
@@ -308,16 +311,19 @@ task addPercentiles {
         File chromosomeVCFIndex
         Array[File] variantPercentiles
         Array[File] variantPercentilesIndex
+        Array[File] metricJSONs
         String vcf_basename
     }
 
-    command {
+    command <<<
         add_percentiles.py -i ~{chromosomeVCF} -p ~{sep=' ' variantPercentiles} -o ~{vcf_basename}.percentiles.vcf.gz
         tabix ~{vcf_basename}.percentiles.vcf.gz
-    }
+        echo -n "[" > metrics.json; zcat ~{sep=" " metricJSONs} | tr "\n" ","  >> metrics.json; sed '$ s/.$//' -i metrics.json; echo -n "]" >> metrics.json
+    >>>
     output {
         File out = "~{vcf_basename}.percentiles.vcf.gz"
         File out_index = "~{vcf_basename}.percentiles.vcf.gz.tbi"
+        File metrics_json = "metrics.json"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"

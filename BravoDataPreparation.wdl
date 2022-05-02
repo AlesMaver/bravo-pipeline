@@ -96,12 +96,14 @@ scatter (chromosome in chromosomes ) {
       chromosomeVCFIndex = concatVcf.output_vcf_index,
       variantPercentiles = computePercentiles.outVariantPercentile,
       variantPercentilesIndex = computePercentiles.outVariantPercentileIndex,
+      metricJSONs = computePercentiles.outAllPercentiles,
       vcf_basename = "all"
     }
 
   output {
     File output_vcf = addPercentiles.out
     File output_vcfs_indices = addPercentiles.out_index
+    File output_metrics_json = addPercentiles.metrics_json
     #Array[Array[File]] out_metrics_files = prepareVCFs.out_metrics
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     Array[File] out_crams = prepareCRAMs.combined_cram_result
