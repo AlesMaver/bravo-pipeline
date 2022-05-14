@@ -1,14 +1,9 @@
 # BRAVO Data Pipeline - SGP manual
 Prepare data for [BRAVO](https://github.com/statgen/bravo)
 
-## Setup
-This pipeline is written in [WDL](https://software.broadinstitute.org/wdl/) using the Cromwell execution engine.
+Data preparation for BRAVO consists of two workflows, outlined below:
 
-
-# Running the BRAVO data preparation pipeline
-
-## Data preparation
-### WORKFLOW 1: Prepare the variants and metrics
+# WORKFLOW 1: Prepare the variants and metrics
 *This step will create two sets of data:*
 1. An annotated VCF file with percentiles, VEP, CADD and metrics, and
 2. Precomputed CRAM files for plotting raw data in the browser
@@ -79,7 +74,7 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 
 **Run the following workflow with the prepared input file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
 
-### WORKFLOW 2: Prepare coverage plots
+# WORKFLOW 2: Prepare coverage plots
 **This step will create jsons containing coverage data for coverage plots in the gene view**
 The coverage analysis will create JSONs with data that will be plotted in the coverage histograms. 
 
@@ -104,7 +99,7 @@ Get the referenceFastaCache using: wget https://storage.googleapis.com/gcp-publi
 
 **NOTE: WORKFLOWS 1 and 2 can be run concurrently**
 
-## Expected outputs
+# Expected outputs
 The two pipelines will generate the following files:
 - An indexed VCF file, containing VEP, CADD, histogram and percentiles information
 - A metrics.json file containing calculated metrics for percentile presentation
