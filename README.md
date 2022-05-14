@@ -106,3 +106,4 @@ The two pipelines will generate the following files:
 - An indexed VCF file, containing VEP, CADD, histogram and percentiles information
 - A metrics.json file containing calculated metrics for percentile presentation
 - One CRAM file per chromosome containing pre-computed reads for IGV.js display
+- One JSON file per chromosome containing histogram data with coverage information
