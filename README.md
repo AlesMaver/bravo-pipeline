@@ -56,12 +56,16 @@ The samplesFile should have the following format:
 ```
 SAMPLE1
 SAMPLE2
+SAMPLE3
+...
 ```
 
-The sampleLocationFile should have the following format:
+The sampleLocationFile should have the following tab-separated format:
 ```
 SAMPLE1 /path_to_crams/SAMPLE1.cram
 SAMPLE2 /path_to_crams/SAMPLE2.cram
+SAMPLE2 /path_to_crams/SAMPLE3.cram
+...
 ```
 
 The CADD scores are available from the following URLs
