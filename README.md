@@ -79,7 +79,6 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 This step will create JSONs with data that will be plotted in the coverage histograms. 
 
 1. Prepare an inputs json file:
-*Note: Initially, do not analyse more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples.*
 
 ```
 {
@@ -91,13 +90,16 @@ This step will create JSONs with data that will be plotted in the coverage histo
 } 
 ```
 
-Substitute `chromosome` input value with the relevant chromosome from the following list: `["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]`
+List paths to input cram and cram.crai file in the `inputCramFiles` and `inputCraiFiles` parameters.
+*Note: Initially, do not analyse more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples.*
+
+Provide `chromosome` input value with the relevant chromosome from the following list: `["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]`
 
 Get the referenceFastaCache using: `wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz`
 
 2. Run the following workflow for each chromosome: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl` for each chromosome contig
 
-**NOTE: WORKFLOWS 1 and 2 can be run concurrently**
+**WORKFLOWS 1 and 2 can be run concurrently**
 
 # Expected outputs
 The two pipelines will generate the following files:
