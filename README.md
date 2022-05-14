@@ -1,10 +1,8 @@
 # BRAVO Data Pipeline - SGP manual
-Prepare data for [BRAVO](https://github.com/statgen/bravo)
+Prepare data for [BRAVO](https://github.com/statgen/bravo) and is based on workflows in WDL. Data preparation for BRAVO consists of two workflows, outlined below. 
 
-Data preparation for BRAVO consists of two workflows, outlined below:
-
-# WORKFLOW 1: Annotate variants, compute metrics and prepare CRAMs
-*This step will create two sets of data:*
+# Workflow 1. Annotate variants, compute metrics and prepare CRAMs
+This step will create two sets of data:
 1. An annotated VCF file with percentiles, VEP, CADD and metrics, and
 2. Precomputed CRAM files for plotting raw data in the browser
 
@@ -14,13 +12,13 @@ Perform this step if Joint Genotyping emits multiple GVCF files rather than a si
 
 `bcftools concat cohort1.filtered.{0..9999}.vcf.gz -o merged.vcf.gz -Oz` 
 
-(Replace "cohort1.filtered" with the prefix of your gvcfs.)
+Replace "cohort1.filtered" with the prefix of your gvcfs in the command above.
 
 2. Index the merged gvcf file:
 
 `tabix merged.vcf.gz`
 
-*This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.*
+This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.
 
 3. Run the data preparation workflow
 Prepare the inputs json file as follows:
@@ -75,15 +73,14 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
 ```
 
-4. **Run the following workflow with the prepared inputs.json file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
+4. Run the following workflow with the prepared inputs.json file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`
 
 
 # WORKFLOW 2: Prepare coverage histograms
-**This step will create jsons containing coverage data for coverage plots in the gene view**
-The coverage analysis will create JSONs with data that will be plotted in the coverage histograms. 
+This step will create JSONs with data that will be plotted in the coverage histograms. 
 
-Prepare an inputs json file:
-*Note: Initially, do not analyse more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples:*
+1. Prepare an inputs json file:
+*Note: Initially, do not analyse more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples.*
 
 ```
 {
@@ -97,9 +94,9 @@ Prepare an inputs json file:
 
 Substitute `chromosome` input value with the relevant chromosome from the following list: `["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]`
 
-Get the referenceFastaCache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
+Get the referenceFastaCache using: `wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz`
 
-**Run the following workflow: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl` for each chromosome contig**
+2. Run the following workflow for each chromosome: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl` for each chromosome contig
 
 **NOTE: WORKFLOWS 1 and 2 can be run concurrently**
 
