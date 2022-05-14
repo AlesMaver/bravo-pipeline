@@ -3,7 +3,7 @@ Prepare data for [BRAVO](https://github.com/statgen/bravo)
 
 Data preparation for BRAVO consists of two workflows, outlined below:
 
-# WORKFLOW 1: Prepare the variants and metrics
+# WORKFLOW 1: Annotate variants, compute metrics and prepare CRAMs
 *This step will create two sets of data:*
 1. An annotated VCF file with percentiles, VEP, CADD and metrics, and
 2. Precomputed CRAM files for plotting raw data in the browser
@@ -74,7 +74,7 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 
 **Run the following workflow with the prepared input file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
 
-# WORKFLOW 2: Prepare coverage plots
+# WORKFLOW 2: Prepare coverage histograms
 **This step will create jsons containing coverage data for coverage plots in the gene view**
 The coverage analysis will create JSONs with data that will be plotted in the coverage histograms. 
 
