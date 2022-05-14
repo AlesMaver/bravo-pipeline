@@ -9,9 +9,11 @@ Data preparation for BRAVO consists of two workflows, outlined below:
 2. Precomputed CRAM files for plotting raw data in the browser
 
 Perform the following steps:
-1. Merge multiple vcf.gz files and index the created file (if Joint Genotyping emits multiple GVCF files rather than a single one). Replace "cohort1.filtered" with the prefix of your gvcfs. 
+1. Merge scattered vcf.gz files and index the created file 
+Perform this step if Joint Genotyping emits multiple GVCF files rather than a single one:
 
-`bcftools concat cohort1.filtered.{0..9999}.vcf.gz -o merged.vcf.gz -Oz`
+`bcftools concat cohort1.filtered.{0..9999}.vcf.gz -o merged.vcf.gz -Oz` 
+(Replace "cohort1.filtered" with the prefix of your gvcfs.)
 
 Index the merged gvcf file
 `tabix merged.vcf.gz`
@@ -19,7 +21,6 @@ Index the merged gvcf file
 (This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.)
 
 2. Run the data preparation workflow
-
 Prepare the inputs json file as follows:
 ``` 
 {
@@ -73,6 +74,7 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 ```
 
 **Run the following workflow with the prepared input file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
+
 
 # WORKFLOW 2: Prepare coverage histograms
 **This step will create jsons containing coverage data for coverage plots in the gene view**
