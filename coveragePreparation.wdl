@@ -37,6 +37,11 @@ workflow prepareCoverage {
         File aggrBasePair_outPruneCov0_50 = aggrBasePair.outPruneCov0_50
         File aggrBasePair_outPruneCov0_75 = aggrBasePair.outPruneCov0_75
         File aggrBasePair_outPruneCov1_00 = aggrBasePair.outPruneCov1_00
+        File aggrBasePair_output_index = aggrBasePair.outAggrBasePair_index
+        File aggrBasePair_outPruneCov0_25_index = aggrBasePair.outPruneCov0_25_index
+        File aggrBasePair_outPruneCov0_50_index = aggrBasePair.outPruneCov0_50_index
+        File aggrBasePair_outPruneCov0_75_index = aggrBasePair.outPruneCov0_75_index
+        File aggrBasePair_outPruneCov1_00_index = aggrBasePair.outPruneCov1_00_index        
         }
 }
 
@@ -94,10 +99,15 @@ task aggrBasePair {
     }
     output {
         File outAggrBasePair = "${chromosome}.full.json.gz"
+        File outAggrBasePair_index = "${chromosome}.full.json.gz.tbi"
         File outPruneCov0_25 = "${chromosome}.bin_0.25.json.gz"
+        File outPruneCov0_25_index = "${chromosome}.bin_0.25.json.gz.tbi"
         File outPruneCov0_50 = "${chromosome}.bin_0.50.json.gz"
+        File outPruneCov0_50_index = "${chromosome}.bin_0.50.json.gz.tbi"
         File outPruneCov0_75 = "${chromosome}.bin_0.75.json.gz"
+        File outPruneCov0_75_index = "${chromosome}.bin_0.75.json.gz.tbi"
         File outPruneCov1_00 = "${chromosome}.bin_1.00.json.gz"
+        File outPruneCov1_00_index = "${chromosome}.bin_1.00.json.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
