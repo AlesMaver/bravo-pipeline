@@ -104,7 +104,7 @@ Get the referenceFastaCache using: wget https://storage.googleapis.com/gcp-publi
 
 **NOTE: WORKFLOWS 1 and 2 can be run concurrently**
 
-### Expected outputs
+## Expected outputs
 The two pipelines will generate the following files:
 - An indexed VCF file, containing VEP, CADD, histogram and percentiles information
 - A metrics.json file containing calculated metrics for percentile presentation
