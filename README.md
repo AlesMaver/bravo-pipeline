@@ -20,8 +20,7 @@ Replace "cohort1.filtered" with the prefix of your gvcfs in the command above.
 
 This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.
 
-3. Run the data preparation workflow
-Prepare the inputs json file as follows:
+3. Prepare the inputs json file as follows:
 ``` 
 {
   "BravoDataPreparation.input_vcf": "merged.vcf.gz",
