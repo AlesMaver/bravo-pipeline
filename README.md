@@ -97,7 +97,7 @@ Provide `chromosome` input value with the relevant chromosome from the following
 
 Get the referenceFastaCache using: `wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz`
 
-2. Run the following workflow for each chromosome: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl` for each chromosome contig
+2. Run the following workflow for each chromosome: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl`
 
 **WORKFLOWS 1 and 2 can be run concurrently**
 
