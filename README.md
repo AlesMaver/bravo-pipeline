@@ -7,7 +7,7 @@ This pipeline is written in [WDL](https://software.broadinstitute.org/wdl/) usin
 # Running the BRAVO data preparation pipeline
 ## Data preparation
 ### WORKFLOW 1: Prepare the variants and metrics
-*This step will create two sets of data: 
+*This step will create two sets of data:*
 1. An annotated VCF file with percentiles, VEP, CADD and metrics, and
 2. Precomputed CRAM files for plotting raw data in the browser
 
