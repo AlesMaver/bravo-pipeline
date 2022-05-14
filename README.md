@@ -6,7 +6,12 @@ This pipeline is written in [WDL](https://software.broadinstitute.org/wdl/) usin
 
 # Running the BRAVO data preparation pipeline
 ## Data preparation
-### WORKFLOW 1: This step will create two sets of data: (1) an annotated VCF file with percentiles, VEP, CADD and metrics and (2) precomputed CRAM files for plotting raw data in the browser
+### WORKFLOW 1: Prepare the variants and metrics
+*This step will create two sets of data: 
+1. An annotated VCF file with percentiles, VEP, CADD and metrics, and
+2. Precomputed CRAM files for plotting raw data in the browser
+
+Perform the following steps:
 1. Merge multiple vcf.gz files and index the created file (if Joint Genotyping emits multiple GVCF files rather than a single one). Replace "cohort1.filtered" with the prefix of your gvcfs. 
 
 `bcftools concat cohort1.filtered.{0..9999}.vcf.gz -o merged.vcf.gz -Oz`
@@ -67,7 +72,8 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 
 *Run the following workflow with the prepared input file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`*
 
-### WORKFLOW 2: This step will create jsons containing coverage data for coverage plots in the gene view
+### WORKFLOW 2: Prepare the variants and metrics
+*This step will create jsons containing coverage data for coverage plots in the gene view*
 For each chromosome in ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"] run the coverage preparation workflow:
 
 Prepare an inputs json file:
