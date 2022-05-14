@@ -13,12 +13,14 @@ Perform the following steps:
 Perform this step if Joint Genotyping emits multiple GVCF files rather than a single one:
 
 `bcftools concat cohort1.filtered.{0..9999}.vcf.gz -o merged.vcf.gz -Oz` 
+
 (Replace "cohort1.filtered" with the prefix of your gvcfs.)
 
-Index the merged gvcf file
+Index the merged gvcf file:
+
 `tabix merged.vcf.gz`
 
-(This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.)
+*This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.*
 
 2. Run the data preparation workflow
 Prepare the inputs json file as follows:
