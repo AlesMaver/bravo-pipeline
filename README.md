@@ -16,13 +16,13 @@ Perform this step if Joint Genotyping emits multiple GVCF files rather than a si
 
 (Replace "cohort1.filtered" with the prefix of your gvcfs.)
 
-Index the merged gvcf file:
+2. Index the merged gvcf file:
 
 `tabix merged.vcf.gz`
 
 *This step can take several hours. You may consider using GatherVcfs or bcftools if they require speeding up.*
 
-2. Run the data preparation workflow
+3. Run the data preparation workflow
 Prepare the inputs json file as follows:
 ``` 
 {
@@ -75,7 +75,7 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
 ```
 
-**Run the following workflow with the prepared input file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
+4. **Run the following workflow with the prepared inputs.json file: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/BravoDataPreparation.wdl`**
 
 
 # WORKFLOW 2: Prepare coverage histograms
@@ -83,7 +83,7 @@ https://kircherlab.bihealth.org/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.
 The coverage analysis will create JSONs with data that will be plotted in the coverage histograms. 
 
 Prepare an inputs json file:
->Initially do not use more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples: 
+*Note: Initially, do not analyse more than 500 cram files (the workflow scatters quite widely and can take a lot of time with hundreds of samples) - the goal for the coverage presentation is not to include all the samples, but to make an average coverage estimation across representative samples:*
 
 ```
 {
@@ -99,7 +99,7 @@ Substitute `chromosome` input value with the relevant chromosome from the follow
 
 Get the referenceFastaCache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
 
-**Run the following workflow: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl`**
+**Run the following workflow: `https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/master/coveragePreparation.wdl` for each chromosome contig**
 
 **NOTE: WORKFLOWS 1 and 2 can be run concurrently**
 
