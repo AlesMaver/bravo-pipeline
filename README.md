@@ -103,7 +103,10 @@ Get the referenceFastaCache using: `wget https://storage.googleapis.com/gcp-publ
 
 # Expected outputs
 The two pipelines will generate the following files:
+Workflow 1:
 - An indexed VCF file, containing VEP, CADD, histogram and percentiles information
 - A metrics.json file containing calculated metrics for percentile presentation
 - One CRAM file per chromosome containing pre-computed reads for IGV.js display
+
+Workflow 2:
 - One JSON file per chromosome containing histogram data with coverage information
