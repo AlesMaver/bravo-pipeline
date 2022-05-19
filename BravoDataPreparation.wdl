@@ -133,7 +133,6 @@ task VCFsplitter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    maxRetries: 3
     requested_memory_mb_per_core: 2000
     cpu: 3
     runtime_minutes: 180
@@ -160,7 +159,6 @@ task concatVcf {
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    maxRetries: 3
     requested_memory_mb_per_core: 5000
     cpu: 1
     runtime_minutes: 90

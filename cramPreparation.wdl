@@ -59,7 +59,7 @@ task extractId {
         File out_index = "~{sample}.vcf.gz.tbi"
     }
     runtime {
-        docker: "alesmaver/bravo-pipeline-sgp"
+        docker: "alesmaver/bravo-pipeline-sgp:latest"
         cpu: "1"
         bootDiskSizeGb: "50"
     }
