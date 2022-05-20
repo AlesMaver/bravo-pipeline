@@ -15,6 +15,7 @@ workflow prepareCram {
     File referenceFasta
 
     # .txt files listing the location of BAM/CRAMs and their index files
+    String sampleLocationPath
     File sampleLocationFile
     #File sampleIndexLocationFile
     }
@@ -31,6 +32,7 @@ workflow prepareCram {
             input_vcf = chromosomeVCF,
             chromosomeVCF = extractId.out,
             chromosomeVCFIndex = extractId.out_index,
+            sampleLocationPath = sampleLocationPath,
             sampleLocationFile = sampleLocationFile,
             #sampleIndexLocationFile = sampleIndexLocationFile,
             referenceFasta = referenceFasta
@@ -71,6 +73,7 @@ task prepareSequences {
         File input_vcf
         File chromosomeVCF
         File chromosomeVCFIndex
+        String sampleLocationPath
         File sampleLocationFile
         #File sampleIndexLocationFile
         File referenceFasta
@@ -81,7 +84,7 @@ task prepareSequences {
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
     command <<<
-        bcftools query -l ~{input_vcf} | awk '{print $0, "/mnt/dataSeq/DATA_REPOSITORY/GVCFS_HG38/"$0"/"$0".cram", "/mnt/dataSeq/DATA_REPOSITORY/GVCFS_HG38/"$0"/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
+        bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0"/"$0".cram", "~{sampleLocationPath}/"$0"/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
         python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
         samtools index ~{chromosome}.cram
         samtools sort ~{chromosome}.cram -o ~{chromosome}.bam

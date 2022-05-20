@@ -16,6 +16,7 @@ workflow BravoDataPreparation {
     # File for samples
     File samplesFile
     # List of sampls and cram file locations for CRAM generation step
+    String sampleLocationPath
     File sampleLocationFile
 
     # Directory for reference data
@@ -69,6 +70,7 @@ scatter (chromosome in chromosomes ) {
         chromosomeVCFIndex = VCFsplitter.output_vcf_index,
         samplesFile = samplesFile,
         referenceFasta = referenceFasta,
+        sampleLocationPath = sampleLocationPath,
         sampleLocationFile = sampleLocationFile
     }
   } # Close per chromosome scatter
