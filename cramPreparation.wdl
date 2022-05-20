@@ -15,7 +15,7 @@ workflow prepareCram {
     File referenceFasta
 
     # .txt files listing the location of BAM/CRAMs and their index files
-    File sampleLocationFile
+    #File sampleLocationFile
     #File sampleIndexLocationFile
     }
 
@@ -31,7 +31,7 @@ workflow prepareCram {
             input_vcf = chromosomeVCF,
             chromosomeVCF = extractId.out,
             chromosomeVCFIndex = extractId.out_index,
-            sampleLocationFile = sampleLocationFile,
+            #sampleLocationFile = sampleLocationFile,
             #sampleIndexLocationFile = sampleIndexLocationFile,
             referenceFasta = referenceFasta
     }
@@ -71,7 +71,7 @@ task prepareSequences {
         File input_vcf
         File chromosomeVCF
         File chromosomeVCFIndex
-        File sampleLocationFile
+        #File sampleLocationFile
         #File sampleIndexLocationFile
         File referenceFasta
         }

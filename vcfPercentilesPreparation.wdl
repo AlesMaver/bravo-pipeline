@@ -244,7 +244,7 @@ task  variantEffectPredictor {
         #docker: "ensemblorg/ensembl-vep:release_95.1"
         #docker: "ensemblorg/ensembl-vep:release_106.1"
         docker: "alesmaver/vep:testing"
-        cpu: "1"
+        #cpu: "1" # removed in order to increase memory, see https://github.com/Ensembl/ensembl-vep/issues/150
         bootDiskSizeGb: "150"
     }
 
