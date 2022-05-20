@@ -62,12 +62,14 @@ workflow prepareVCFPercentiles {
     }
 
     call variantEffectPredictor {
-        input: chromosomeVCF = AddOriginalVCFAnnotations.output_vcf,
+        input: 
+            chromosomeVCF = AddOriginalVCFAnnotations.output_vcf,
             assembly = assembly,
             bufferSize = bufferSize,
             #referenceDir = referenceDir,
             referenceFasta = referenceFasta,
             #lofteeDir = lofteeDir
+            forks = threads
     }
 
     call addCaddScores {
@@ -190,7 +192,7 @@ task AddOriginalVCFAnnotations {
   }
 }
 
-task  variantEffectPredictor {
+task variantEffectPredictor {
     input {
         File chromosomeVCF
         String assembly
@@ -198,6 +200,8 @@ task  variantEffectPredictor {
         #File referenceDir
         File referenceFasta
         #File lofteeDir
+        Int forks
+
     }
 
     command <<<
@@ -233,7 +237,7 @@ task  variantEffectPredictor {
         --buffer_size ~{bufferSize} \
         --compress_output bgzip \
         --no_stats \
-        --fork 8 \
+        --fork ~{forks} \
         --dir_plugins /opt/vep/plugins/loftee/ \
         -o variantEP.vcf.gz
     >>>
@@ -244,7 +248,7 @@ task  variantEffectPredictor {
         #docker: "ensemblorg/ensembl-vep:release_95.1"
         #docker: "ensemblorg/ensembl-vep:release_106.1"
         docker: "alesmaver/vep:testing"
-        #cpu: "1" # removed in order to increase memory, see https://github.com/Ensembl/ensembl-vep/issues/150
+        cpu: forks # "1" # changed in order to increase memory, see https://github.com/Ensembl/ensembl-vep/issues/150
         bootDiskSizeGb: "150"
     }
 
