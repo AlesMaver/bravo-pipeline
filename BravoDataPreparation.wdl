@@ -137,7 +137,7 @@ task VCFsplitter {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 3
-    runtime_minutes: 180
+    #runtime_minutes: 180
   }
   output {
     File output_vcf = "~{chromosome}.~{vcf_basename}.vcf.gz"
@@ -163,7 +163,7 @@ task concatVcf {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 5000
     cpu: 1
-    runtime_minutes: 90
+    #runtime_minutes: 90
   }
   output {
     File output_vcf = "output.vcf.gz"

@@ -129,7 +129,7 @@ task FilterVCF {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 5000
     cpu: 1
-    runtime_minutes: 90
+    #runtime_minutes: 90
   }
   output {
     File output_vcf = "output.vcf.gz"
@@ -184,7 +184,7 @@ task AddOriginalVCFAnnotations {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 5000
     cpu: 1
-    runtime_minutes: 90
+    #runtime_minutes: 90
   }
   output {
     File output_vcf = "output.vcf.gz"
