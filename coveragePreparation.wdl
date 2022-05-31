@@ -57,18 +57,20 @@ task extractDepth {
         #tar xzf ${referenceFastaCache}
         #export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
         #export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
+
+        mkdir -p sample_depths
     
         samtools view -T ${referenceFasta} -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
         samtools calmd -uAEr - ${referenceFasta} | \
         bam clipOverlap --in -.ubam --out -.ubam | \
         samtools mpileup -f ${referenceFasta} -Q 20 -t DP - | \
         cut -f1-4 | \
-        bgzip > ${chromosome}.${sample}.depth.gz \
-        && tabix -b 2 ${chromosome}.${sample}.depth.gz
+        bgzip > sample_depths/${chromosome}.${sample}.depth.gz \
+        && tabix -b 2 sample_depths/${chromosome}.${sample}.depth.gz
     }
     output {
-        File outDepth = "${chromosome}.${sample}.depth.gz"
-        File outIndex = "${chromosome}.${sample}.depth.gz.tbi"
+        File outDepth = "sample_depths/${chromosome}.${sample}.depth.gz"
+        File outIndex = "sample_depths/${chromosome}.${sample}.depth.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
@@ -91,23 +93,28 @@ task aggrBasePair {
         create_coverage.py -i files.txt chunk -c ${chromosome} -s 2000000 > commands.list
         bash commands.list
         find $PWD -name "*bgz" > file.list
-        merge_coverage.py -i file.list -o ${chromosome}.full.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.25 -o ${chromosome}.bin_0.25.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.50 -o ${chromosome}.bin_0.50.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.75 -o ${chromosome}.bin_0.75.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 1.00 -o ${chromosome}.bin_1.00.json.gz
+        mkdir -p full
+        merge_coverage.py -i file.list -o full/${chromosome}.full.json.gz
+        mkdir -p bin_25e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.25 -o bin_25e-2/${chromosome}.bin_0.25.json.gz
+        mkdir -p bin_50e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.50 -o bin_50e-2/${chromosome}.bin_0.50.json.gz
+        mkdir -p bin_75e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.75 -o bin_75e-2/${chromosome}.bin_0.75.json.gz
+        mkdir -p bin_10e-1
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 1.00 -o bin_10e-1/${chromosome}.bin_1.00.json.gz
     }
     output {
-        File outAggrBasePair = "${chromosome}.full.json.gz"
-        File outAggrBasePair_index = "${chromosome}.full.json.gz.tbi"
-        File outPruneCov0_25 = "${chromosome}.bin_0.25.json.gz"
-        File outPruneCov0_25_index = "${chromosome}.bin_0.25.json.gz.tbi"
-        File outPruneCov0_50 = "${chromosome}.bin_0.50.json.gz"
-        File outPruneCov0_50_index = "${chromosome}.bin_0.50.json.gz.tbi"
-        File outPruneCov0_75 = "${chromosome}.bin_0.75.json.gz"
-        File outPruneCov0_75_index = "${chromosome}.bin_0.75.json.gz.tbi"
-        File outPruneCov1_00 = "${chromosome}.bin_1.00.json.gz"
-        File outPruneCov1_00_index = "${chromosome}.bin_1.00.json.gz.tbi"
+        File outAggrBasePair = "full/${chromosome}.full.json.gz"
+        File outAggrBasePair_index = "full/${chromosome}.full.json.gz.tbi"
+        File outPruneCov0_25 = "bin_25e-2/${chromosome}.bin_0.25.json.gz"
+        File outPruneCov0_25_index = "bin_25e-2/${chromosome}.bin_0.25.json.gz.tbi"
+        File outPruneCov0_50 = "bin_50e-2/${chromosome}.bin_0.50.json.gz"
+        File outPruneCov0_50_index = "bin_50e-2/${chromosome}.bin_0.50.json.gz.tbi"
+        File outPruneCov0_75 = "bin_75e-2/${chromosome}.bin_0.75.json.gz"
+        File outPruneCov0_75_index = "bin_75e-2/${chromosome}.bin_0.75.json.gz.tbi"
+        File outPruneCov1_00 = "bin_10e-1/${chromosome}.bin_1.00.json.gz"
+        File outPruneCov1_00_index = "bin_10e-1/${chromosome}.bin_1.00.json.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
