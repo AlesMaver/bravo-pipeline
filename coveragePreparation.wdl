@@ -57,14 +57,16 @@ task extractDepth {
         #tar xzf ${referenceFastaCache}
         #export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
         #export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
+
+        mkdir -p sample_depths
     
         samtools view -T ${referenceFasta} -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
         samtools calmd -uAEr - ${referenceFasta} | \
         bam clipOverlap --in -.ubam --out -.ubam | \
         samtools mpileup -f ${referenceFasta} -Q 20 -t DP - | \
         cut -f1-4 | \
-        bgzip > ${chromosome}.${sample}.depth.gz \
-        && tabix -b 2 ${chromosome}.${sample}.depth.gz
+        bgzip > sample_depths/${chromosome}.${sample}.depth.gz \
+        && tabix -b 2 sample_depths/${chromosome}.${sample}.depth.gz
     }
     output {
         File outDepth = "sample_depths/${chromosome}.${sample}.depth.gz"
@@ -91,11 +93,16 @@ task aggrBasePair {
         create_coverage.py -i files.txt chunk -c ${chromosome} -s 2000000 > commands.list
         bash commands.list
         find $PWD -name "*bgz" > file.list
-        merge_coverage.py -i file.list -o ${chromosome}.full.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.25 -o ${chromosome}.bin_0.25.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.50 -o ${chromosome}.bin_0.50.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 0.75 -o ${chromosome}.bin_0.75.json.gz
-        prune_coverage.py -i ${chromosome}.full.json.gz -l 1.00 -o ${chromosome}.bin_1.00.json.gz
+        mkdir -p full
+        merge_coverage.py -i file.list -o full/${chromosome}.full.json.gz
+        mkdir -p bin_25e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.25 -o bin_25e-2/${chromosome}.bin_0.25.json.gz
+        mkdir -p bin_50e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.50 -o bin_50e-2/${chromosome}.bin_0.50.json.gz
+        mkdir -p bin_75e-2
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 0.75 -o bin_75e-2/${chromosome}.bin_0.75.json.gz
+        mkdir -p bin_10e-1
+        prune_coverage.py -i full/${chromosome}.full.json.gz -l 1.00 -o bin_10e-1/${chromosome}.bin_1.00.json.gz
     }
     output {
         File outAggrBasePair = "full/${chromosome}.full.json.gz"
