@@ -41,26 +41,26 @@ workflow BravoDataPreparation {
     String vcf_basename = basename(input_vcf, ".vcf.gz")
   }
 
-scatter (chromosome in chromosomes ) {
-	call VCFsplitter {
-		input:
-			input_vcf = input_vcf,
-			input_vcf_index = input_vcf_index,
-			chromosome = chromosome,
-      referenceFasta = referenceFasta
-		}
+  scatter (chromosome in chromosomes ) {
+  	call VCFsplitter {
+  		input:
+  			input_vcf = input_vcf,
+  			input_vcf_index = input_vcf_index,
+  			chromosome = chromosome,
+        referenceFasta = referenceFasta
+  	}
 
-	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
-		input:
-			input_vcf = VCFsplitter.output_vcf,
-			input_vcf_index = VCFsplitter.output_vcf_index,
-			samplesFile = samplesFile,
-			#referenceDir = referenceDir, 
-			#lofteeDir = lofteeDir,
-			referenceFasta = referenceFasta,
-			cadScores = cadScores,
-			cadScoresIndex = cadScoresIndex,
-			infoFields = infoFields
+  	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
+  		input:
+  			input_vcf = VCFsplitter.output_vcf,
+  			input_vcf_index = VCFsplitter.output_vcf_index,
+  			samplesFile = samplesFile,
+  			#referenceDir = referenceDir, 
+  			#lofteeDir = lofteeDir,
+  			referenceFasta = referenceFasta,
+  			cadScores = cadScores,
+  			cadScoresIndex = cadScoresIndex,
+  			infoFields = infoFields
 		}
 
     call cramPreparation.prepareCram as prepareCRAMs {
@@ -70,7 +70,7 @@ scatter (chromosome in chromosomes ) {
         chromosomeVCFIndex = VCFsplitter.output_vcf_index,
         samplesFile = samplesFile,
         referenceFasta = referenceFasta,
-        sampleLocationPath = sampleLocationPath,
+        sampleLocationPath = sampleLocationPath
         #sampleLocationFile = sampleLocationFile
     }
   } # Close per chromosome scatter
@@ -100,7 +100,7 @@ scatter (chromosome in chromosomes ) {
       variantPercentilesIndex = computePercentiles.outVariantPercentileIndex,
       metricJSONs = computePercentiles.outAllPercentiles,
       vcf_basename = "all"
-    }
+  }
 
   output {
     File output_vcf = addPercentiles.out
