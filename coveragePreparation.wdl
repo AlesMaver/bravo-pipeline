@@ -67,8 +67,8 @@ task extractDepth {
         && tabix -b 2 ${chromosome}.${sample}.depth.gz
     }
     output {
-        File outDepth = "${chromosome}.${sample}.depth.gz"
-        File outIndex = "${chromosome}.${sample}.depth.gz.tbi"
+        File outDepth = "sample_depths/${chromosome}.${sample}.depth.gz"
+        File outIndex = "sample_depths/${chromosome}.${sample}.depth.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
@@ -98,16 +98,16 @@ task aggrBasePair {
         prune_coverage.py -i ${chromosome}.full.json.gz -l 1.00 -o ${chromosome}.bin_1.00.json.gz
     }
     output {
-        File outAggrBasePair = "${chromosome}.full.json.gz"
-        File outAggrBasePair_index = "${chromosome}.full.json.gz.tbi"
-        File outPruneCov0_25 = "${chromosome}.bin_0.25.json.gz"
-        File outPruneCov0_25_index = "${chromosome}.bin_0.25.json.gz.tbi"
-        File outPruneCov0_50 = "${chromosome}.bin_0.50.json.gz"
-        File outPruneCov0_50_index = "${chromosome}.bin_0.50.json.gz.tbi"
-        File outPruneCov0_75 = "${chromosome}.bin_0.75.json.gz"
-        File outPruneCov0_75_index = "${chromosome}.bin_0.75.json.gz.tbi"
-        File outPruneCov1_00 = "${chromosome}.bin_1.00.json.gz"
-        File outPruneCov1_00_index = "${chromosome}.bin_1.00.json.gz.tbi"
+        File outAggrBasePair = "full/${chromosome}.full.json.gz"
+        File outAggrBasePair_index = "full/${chromosome}.full.json.gz.tbi"
+        File outPruneCov0_25 = "bin_25e-2/${chromosome}.bin_0.25.json.gz"
+        File outPruneCov0_25_index = "bin_25e-2/${chromosome}.bin_0.25.json.gz.tbi"
+        File outPruneCov0_50 = "bin_50e-2/${chromosome}.bin_0.50.json.gz"
+        File outPruneCov0_50_index = "bin_50e-2/${chromosome}.bin_0.50.json.gz.tbi"
+        File outPruneCov0_75 = "bin_75e-2/${chromosome}.bin_0.75.json.gz"
+        File outPruneCov0_75_index = "bin_75e-2/${chromosome}.bin_0.75.json.gz.tbi"
+        File outPruneCov1_00 = "bin_10e-1/${chromosome}.bin_1.00.json.gz"
+        File outPruneCov1_00_index = "bin_10e-1/${chromosome}.bin_1.00.json.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
