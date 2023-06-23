@@ -84,7 +84,7 @@ task prepareSequences {
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
     command <<<
-        bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0"/"$0".cram", "~{sampleLocationPath}/"$0"/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
+        bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0".cram", "~{sampleLocationPath}/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
         python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
         samtools index ~{chromosome}.cram
         samtools sort ~{chromosome}.cram -o ~{chromosome}.bam
