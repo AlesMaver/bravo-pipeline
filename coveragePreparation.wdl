@@ -57,20 +57,18 @@ task extractDepth {
         #tar xzf ${referenceFastaCache}
         #export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
         #export REF_CACHE="$(pwd)/ref/cache/%2s/%2s/%s"
-
-        mkdir -p sample_depths
     
         samtools view -T ${referenceFasta} -q 20 -F 0x0704 -uh ${inputCramFile} ${chromosome} | \
         samtools calmd -uAEr - ${referenceFasta} | \
         bam clipOverlap --in -.ubam --out -.ubam | \
         samtools mpileup -f ${referenceFasta} -Q 20 -t DP - | \
         cut -f1-4 | \
-        bgzip > sample_depths/${chromosome}.${sample}.depth.gz \
-        && tabix -b 2 sample_depths/${chromosome}.${sample}.depth.gz
+        bgzip > ${chromosome}.${sample}.depth.gz \
+        && tabix -b 2 ${chromosome}.${sample}.depth.gz
     }
     output {
-        File outDepth = "sample_depths/${chromosome}.${sample}.depth.gz"
-        File outIndex = "sample_depths/${chromosome}.${sample}.depth.gz.tbi"
+        File outDepth = "${chromosome}.${sample}.depth.gz"
+        File outIndex = "${chromosome}.${sample}.depth.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
