@@ -286,19 +286,20 @@ task computePercentiles {
     }
 
     command <<<
+        mkdir -p metrics
         ComputePercentiles -i ~{chromosomeVCF} \
         -m ~{infoField} \
         -t ~{threads} \
         -p ~{numberPercentiles} \
         -d ~{description}_~{infoField} \
-        -o ~{infoField}
+        -o metrics/~{infoField}
 
-        tabix ~{infoField}.variant_percentile.vcf.gz
+        tabix metrics/~{infoField}.variant_percentile.vcf.gz
     >>>
     output {
-        File outAllPercentiles = "~{infoField}.all_percentiles.json.gz"
-        File outVariantPercentile = "~{infoField}.variant_percentile.vcf.gz"
-        File outVariantPercentileIndex = "~{infoField}.variant_percentile.vcf.gz.tbi"
+        File outAllPercentiles = "metrics/~{infoField}.all_percentiles.json.gz"
+        File outVariantPercentile = "metrics/~{infoField}.variant_percentile.vcf.gz"
+        File outVariantPercentileIndex = "metrics/~{infoField}.variant_percentile.vcf.gz.tbi"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
@@ -318,14 +319,15 @@ task addPercentiles {
     }
 
     command <<<
-        add_percentiles.py -i ~{chromosomeVCF} -p ~{sep=' ' variantPercentiles} -o ~{vcf_basename}.percentiles.vcf.gz
-        tabix ~{vcf_basename}.percentiles.vcf.gz
-        echo -n "[" > metrics.json; zcat ~{sep=" " metricJSONs} | tr "\n" ","  >> metrics.json; sed '$ s/.$//' -i metrics.json; echo -n "]" >> metrics.json
+        mkdir -p vcf
+        add_percentiles.py -i ~{chromosomeVCF} -p ~{sep=' ' variantPercentiles} -o vcf/~{vcf_basename}.percentiles.vcf.gz
+        tabix vcf/~{vcf_basename}.percentiles.vcf.gz
+        echo -n "[" > metrics/metrics.json; zcat ~{sep=" " metricJSONs} | tr "\n" ","  >> metrics/metrics.json; sed '$ s/.$//' -i metrics/metrics.json; echo -n "]" >> metrics/metrics.json
     >>>
     output {
-        File out = "~{vcf_basename}.percentiles.vcf.gz"
-        File out_index = "~{vcf_basename}.percentiles.vcf.gz.tbi"
-        File metrics_json = "metrics.json"
+        File out = "vcf/~{vcf_basename}.percentiles.vcf.gz"
+        File out_index = "vcf/~{vcf_basename}.percentiles.vcf.gz.tbi"
+        File metrics_json = "metrics/metrics.json"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"

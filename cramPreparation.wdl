@@ -84,19 +84,20 @@ task prepareSequences {
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
     command <<<
+        mkdir -p cram
         bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0".cram", "~{sampleLocationPath}/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
         python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
         samtools index ~{chromosome}.cram
         samtools sort -@ 4 ~{chromosome}.cram -o ~{chromosome}.bam
         samtools index ~{chromosome}.bam
         rm ~{chromosome}.cram*
-        samtools view -T ~{referenceFasta} -O CRAM ~{chromosome}.bam -o ~{chromosome}.cram
-        samtools index ~{chromosome}.cram
+        samtools view -T ~{referenceFasta} -O CRAM ~{chromosome}.bam -o cram/~{chromosome}.cram
+        samtools index cram/~{chromosome}.cram
         rm ~{chromosome}.bam*
     >>>
     output {
-        File combined_cram = "~{chromosome}.cram"
-        File combined_cram_index = "~{chromosome}.cram.crai"
+        File combined_cram = "cram/~{chromosome}.cram"
+        File combined_cram_index = "cram/~{chromosome}.cram.crai"
     }
     runtime {
         docker: "alesmaver/bravo-pipeline-sgp:latest"
