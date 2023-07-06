@@ -320,6 +320,7 @@ task addPercentiles {
 
     command <<<
         mkdir -p vcf
+        mkdir -p metrics
         add_percentiles.py -i ~{chromosomeVCF} -p ~{sep=' ' variantPercentiles} -o vcf/~{vcf_basename}.percentiles.vcf.gz
         tabix vcf/~{vcf_basename}.percentiles.vcf.gz
         echo -n "[" > metrics/metrics.json; zcat ~{sep=" " metricJSONs} | tr "\n" ","  >> metrics/metrics.json; sed '$ s/.$//' -i metrics/metrics.json; echo -n "]" >> metrics/metrics.json
