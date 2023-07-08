@@ -130,7 +130,7 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome} ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<=90' | bcftools norm -m-any -f ~{referenceFasta} | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter -i "QUAL>100" -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome} ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools norm -m-any -f ~{referenceFasta} | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter -i "QUAL>100" -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{chromosome}.~{vcf_basename}.vcf.gz
   }
   runtime {
