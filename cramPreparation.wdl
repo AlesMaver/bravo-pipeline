@@ -79,29 +79,43 @@ task prepareSequences {
         File referenceFasta
         }
 
+    String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
+
     # Need to read index and bam files into WDL task scope
     # Array[File] sampleFiles = read_lines(sampleLocationFile)
     # Array[File] sampleFilesIndex = read_lines(sampleIndexLocationFile)
 
     command <<<
+        non_comment_lines=$(zcat "~{chromosomeVCF}" | grep -v '^#' | wc -l)
+        
         mkdir -p cram
-        bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0".cram", "~{sampleLocationPath}/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
-        python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome}.cram
-        samtools index ~{chromosome}.cram
-        samtools sort -@ 4 ~{chromosome}.cram -o ~{chromosome}.bam
-        samtools index ~{chromosome}.bam
-        rm ~{chromosome}.cram*
-        samtools view -T ~{referenceFasta} -O CRAM ~{chromosome}.bam -o cram/~{chromosome}.cram
-        samtools index cram/~{chromosome}.cram
-        rm ~{chromosome}.bam*
+        if [ "$non_comment_lines" -ne 0 ]; then
+            echo "OK, we have variants that need to be processed..."
+
+            bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0".cram", "~{sampleLocationPath}/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
+            python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome_filename}.cram
+            samtools index ~{chromosome_filename}.cram
+            samtools sort -@ 4 ~{chromosome_filename}.cram -o ~{chromosome_filename}.bam
+            samtools index ~{chromosome_filename}.bam
+            rm ~{chromosome_filename}.cram*
+            samtools view -T ~{referenceFasta} -O CRAM ~{chromosome_filename}.bam -o cram/~{chromosome_filename}.cram
+            samtools index cram/~{chromosome_filename}.cram
+            rm ~{chromosome_filename}.bam*
+        else
+            echo "Sorry no variants to process, creating empty cram and crai to allow continuation of the WF..."
+
+            touch cram/~{chromosome_filename}.cram
+            touch cram/~{chromosome_filename}.cram.crai
+        fi
     >>>
     output {
-        File combined_cram = "cram/~{chromosome}.cram"
-        File combined_cram_index = "cram/~{chromosome}.cram.crai"
+        File combined_cram = "cram/~{chromosome_filename}.cram"
+        File combined_cram_index = "cram/~{chromosome_filename}.cram.crai"
     }
     runtime {
         docker: "alesmaver/bravo-pipeline-sgp:latest"
         cpu: "4"
         bootDiskSizeGb: "50"
+        continueOnReturnCode: true
     }
 }

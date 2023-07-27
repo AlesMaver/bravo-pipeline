@@ -110,3 +110,9 @@ Workflow 1:
 
 Workflow 2:
 - One JSON file per chromosome containing histogram data with coverage information
+
+# Testing and development
+## The script below can be used to use a thinner version of the VCF file when testing workflows
+```
+vcftools --thin 1000000 --recode --recode-INFO-all --stdout --gzvcf /cmg1scratch/dataSeq/DATA_REPOSITORY/MVCFS_HG38/SGP7619merged/SGP7619merged_vep.vcf.gz | bgzip > /cmg1scratch/cromwell/inputsTEST/SGP7619merged_vep_thin.vcf.gz
+```

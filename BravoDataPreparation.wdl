@@ -11,7 +11,9 @@ workflow BravoDataPreparation {
     File input_vcf
     File input_vcf_index
 
+    File interval_list
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
+    #Array[String] chromosomes = ["chr21", "chr22", "chrY"]
 
     # File for samples
     File samplesFile
@@ -38,10 +40,31 @@ workflow BravoDataPreparation {
     Int numberPercentiles = 10
     String description = "Description"
 
+    # Remove reported variants
+    File reported_variants
+
     String vcf_basename = basename(input_vcf, ".vcf.gz")
   }
 
-  scatter (chromosome in chromosomes ) {
+  call ConvertIntervalListToBed {
+    input:
+      interval_list = interval_list
+  }
+
+  call SplitRegions {
+    input:
+      input_bed = ConvertIntervalListToBed.converted_bed
+  }
+
+  # scatter (scatter_region in SplitRegions.scatter_regions ) {
+  #  call PrintStringToStdout {
+  #    input:
+  #      input_string = scatter_region
+  #    }
+  #  }
+
+  scatter (chromosome in SplitRegions.scatter_regions ) {
+  #scatter (chromosome in chromosomes ) {
   	call VCFsplitter {
   		input:
   			input_vcf = input_vcf,
@@ -50,10 +73,28 @@ workflow BravoDataPreparation {
         referenceFasta = referenceFasta
   	}
 
+    call RemoveReportedVariants {
+      input:
+        input_vcf = VCFsplitter.output_vcf,
+        reported_variants = reported_variants
+    }
+
+    call VCFindex {
+      input:
+        input_vcf = RemoveReportedVariants.output_vcf
+    }
+
+    call VCFfilter {
+  		input:
+  			input_vcf = VCFindex.output_vcf,
+        input_vcf_index = VCFindex.output_vcf_index,
+        referenceFasta = referenceFasta
+  	}
+
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
   		input:
-  			input_vcf = VCFsplitter.output_vcf,
-  			input_vcf_index = VCFsplitter.output_vcf_index,
+  			input_vcf = VCFfilter.output_vcf,
+  			input_vcf_index = VCFfilter.output_vcf_index,
   			samplesFile = samplesFile,
   			#referenceDir = referenceDir, 
   			#lofteeDir = lofteeDir,
@@ -76,10 +117,30 @@ workflow BravoDataPreparation {
   } # Close per chromosome scatter
 
   # Concatenate VCFs from prepare percentiles task
+  call concatVcf as concatVcf_RemoveReportedVariants{
+    input:
+      input_vcfs = VCFindex.output_vcf,
+      input_vcfs_indices = VCFindex.output_vcf_index,
+      output_name = "output_RemoveReportedVariants"
+  }
+
+  # Concatenate VCFs with removed reported variants
   call concatVcf {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
-      input_vcfs_indices = prepareVCFs.output_annotated_vcf_index
+      input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
+      output_name = "output"
+  }
+
+  scatter (chromosome in chromosomes) {
+    call concatCrams {
+      input:
+        input_crams = prepareCRAMs.combined_cram_result,
+        input_cram_indices = prepareCRAMs.combined_cram_result_index,
+
+        chromosome = chromosome,
+        referenceFasta = referenceFasta
+    }
   }
 
   scatter (field in infoFields) {
@@ -108,14 +169,95 @@ workflow BravoDataPreparation {
     File output_metrics_json = addPercentiles.metrics_json
     #Array[Array[File]] out_metrics_files = prepareVCFs.out_metrics
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
-    Array[File] out_crams = prepareCRAMs.combined_cram_result
-    Array[File] out_crais = prepareCRAMs.combined_cram_result_index
+    File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
+    File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants.output_vcf_index
+    Array[File] out_crams = concatCrams.output_cram
+    Array[File] out_crais = concatCrams.output_cram_index
   }
 } # Close workflow
 
 
 
 # Tasks
+##############################
+task ConvertIntervalListToBed {
+  input {
+    File interval_list
+  }
+
+  # Command section where the conversion is performed using Picard
+  command <<<
+    # Convert an interval list to BED 
+    java  -Xmx14g -jar /usr/picard/picard.jar IntervalListToBed \
+      I=~{interval_list} \
+      O=interval.bed
+
+    # Format the scatter regions
+    awk '{print $1":"$2"-"$3}' interval.bed |awk 'NR % 50 == 0' > regions.txt
+
+    #output_regions=$(cat output_regions.txt)
+  >>>
+
+  # Specify the runtime parameters for the task
+  runtime {
+    docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
+    cpu: 1
+    memory: "2G"
+  }
+
+  # Specify the output declaration to capture the output BED file
+  output {
+    File converted_bed = "interval.bed"
+    File converted_regions = "regions.txt"
+    Array[String] scatter_regions = read_lines("regions.txt")
+  }
+}
+
+##############################
+task SplitRegions {
+  input {
+    File input_bed
+  }
+
+  # Command section where the conversion is performed using Picard
+  command <<<
+    # Convert an interval list to BED 
+    bedtools makewindows -b ~{input_bed} -w 1000000 |awk '{print $1":"$2"-"$3}' |awk 'NR % 100 == 0' > regions.txt
+  >>>
+
+  # Specify the runtime parameters for the task
+  runtime {
+    docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
+    cpu: 1
+    memory: "2G"
+  }
+
+  # Specify the output declaration to capture the output BED file
+  output {
+    File converted_regions = "regions.txt"
+    Array[String] scatter_regions = read_lines("regions.txt")
+  }
+}
+
+##############################
+task PrintStringToStdout {
+  # Define the input string
+  input {
+    String input_string
+  }
+
+  # Command section where the input string is printed to stdout
+  command {
+    echo "${input_string}"
+  }
+
+  # Specify the output declaration (optional in this case)
+  output {
+    String output_string = read_string(stdout())
+  }
+}
+
+##############################
 task VCFsplitter {
   input {
     # Command parameters
@@ -127,11 +269,12 @@ task VCFsplitter {
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz")
+  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
 
   command {
     set -e
-    bcftools view -r ~{chromosome} ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools norm -m-any -f ~{referenceFasta} | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter -i "QUAL>100" -Oz -o ~{chromosome}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{chromosome}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome} -s PX9375,PX3188 ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -140,23 +283,100 @@ task VCFsplitter {
     #runtime_minutes: 180
   }
   output {
-    File output_vcf = "~{chromosome}.~{vcf_basename}.vcf.gz"
-    File output_vcf_index = "~{chromosome}.~{vcf_basename}.vcf.gz.tbi"
+    File output_vcf = "~{chromosome_filename}.~{vcf_basename}.vcf.gz"
+    File output_vcf_index = "~{chromosome_filename}.~{vcf_basename}.vcf.gz.tbi"
   }
 }
 
+##############################
+task RemoveReportedVariants {
+  input {
+    # Command parameters
+    File input_vcf
+    File reported_variants
+  }
+
+  String output_vcf_filename = "cleaned.vcf.gz"
+
+  command {
+    set -e
+    wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/region_scatter/removeReportedVariants.py
+    python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
+  }
+  runtime {
+    docker: "amancevice/pandas"
+    requested_memory_mb_per_core: 2000
+    cpu: 3
+    #runtime_minutes: 180
+  }
+  output {
+    File output_vcf = "~{output_vcf_filename}"
+  }
+}
+
+##############################
+task VCFindex {
+  input {
+    File input_vcf
+  }
+
+  command {
+    set -e
+    zcat ~{input_vcf} | bcftools view -Oz -o indexed.vcf.gz
+    bcftools index  -t indexed.vcf.gz
+  }
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: 3
+    #runtime_minutes: 180
+  }
+  output {
+    File output_vcf = "indexed.vcf.gz"
+    File output_vcf_index = "indexed.vcf.gz.tbi"
+  }
+}
+
+##############################
+task VCFfilter {
+  input {
+    # Command parameters
+    File input_vcf
+    File input_vcf_index
+
+    File referenceFasta
+  }
+
+  command {
+    set -e
+    #zcat ~{input_vcf} | bcftools view -Oz -o input.vcf.gz
+    #bcftools index input.vcf.gz
+    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter -i "QUAL>100" -Oz -o filtered.vcf.gz
+    bcftools index -t filtered.vcf.gz
+  }
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: 3
+    #runtime_minutes: 180
+  }
+  output {
+    File output_vcf = "filtered.vcf.gz"
+    File output_vcf_index = "filtered.vcf.gz.tbi"
+  }
+}
 
 task concatVcf {
     input {
       Array[File] input_vcfs
       Array[File] input_vcfs_indices
+      String output_name
     }
   
   command <<<
   set -e
-    #for i in ~{sep=" " input_vcfs} ; do bcftools index -t $i; done
-    bcftools concat ~{sep=" " input_vcfs} -Oz -o output.vcf.gz
-    bcftools index -t output.vcf.gz
+    bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz
   >>>
 
   runtime {
@@ -166,7 +386,47 @@ task concatVcf {
     #runtime_minutes: 90
   }
   output {
-    File output_vcf = "output.vcf.gz"
-    File output_vcf_index = "output.vcf.gz.tbi"
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+task concatCrams {
+    input {
+      Array[File] input_crams
+      Array[File] input_cram_indices
+
+      String chromosome
+      File referenceFasta
+    }
+  
+  command <<<
+    # Ensure output files are in the executions dir to allow continuation in case of an empty cram
+    touch ~{chromosome}.cram
+    touch ~{chromosome}.cram.crai
+    touch chromosome.cram.list
+    touch chromosome.cram.non_empty.list
+
+    cat ~{write_lines(input_crams)} | grep "~{chromosome}__" > chromosome.cram.list
+    cat chromosome.cram.list | xargs -I {} find {} -type f -empty -prune -o -print > chromosome.cram.non_empty.list
+
+    if [ -s "chromosome.cram.non_empty.list" ]; then
+        echo "At least one input CRAM file found, therefore merging!"
+        samtools merge -b chromosome.cram.list -O CRAM ~{chromosome}.cram --reference ~{referenceFasta} -f
+        samtools index ~{chromosome}.cram
+    else
+        echo "No input CRAM files, therefore leaving empty final crams!"
+    fi
+  >>>
+
+  runtime {
+    docker: "alesmaver/bravo-pipeline-sgp:latest"
+    requested_memory_mb_per_core: 5000
+    cpu: 1
+    #runtime_minutes: 90
+  }
+  output {
+    File output_cram = "~{chromosome}.cram"
+    File output_cram_index = "~{chromosome}.cram.crai"
   }
 }
