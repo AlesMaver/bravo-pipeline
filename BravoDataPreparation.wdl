@@ -15,19 +15,12 @@ workflow BravoDataPreparation {
     Int? thinning_parameter
 
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
-    #Array[String] chromosomes = ["chr21", "chr22", "chrY"]
 
     # File for samples
     File samplesFile
     # List of sampls and cram file locations for CRAM generation step
     String sampleLocationPath
     #File sampleLocationFile
-
-    # Directory for reference data
-    #File referenceDir
-
-    # Directory for loftee
-    #File lofteeDir
 
     # Reference FASTA file - hg37/38
     File referenceFasta
@@ -59,15 +52,7 @@ workflow BravoDataPreparation {
       thinning_parameter = thinning_parameter
   }
 
-  # scatter (scatter_region in SplitRegions.scatter_regions ) {
-  #  call PrintStringToStdout {
-  #    input:
-  #      input_string = scatter_region
-  #    }
-  #  }
-
   scatter (chromosome in SplitRegions.scatter_regions ) {
-  #scatter (chromosome in chromosomes ) {
   	call VCFsplitter {
   		input:
   			input_vcf = input_vcf,
@@ -374,6 +359,7 @@ task VCFfilter {
   }
 }
 
+##############################
 task concatVcf {
     input {
       Array[File] input_vcfs
@@ -399,6 +385,7 @@ task concatVcf {
   }
 }
 
+##############################
 task concatCrams {
     input {
       Array[File] input_crams
