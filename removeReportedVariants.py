@@ -83,16 +83,3 @@ with gzip.open(input_file, 'rt') as input_f, gzip.open(output_file, 'wt') as out
     print("Final chunk...")
     _ = output_f.writelines(chunked_lines) # Redirect output to _ to prevent printing to console
     chunked_lines = []
-
-###########################
-# BGZIP the vcf file and prepare the cleaned output file
-###########################
-
-# bcftools index -s /mnt/dataSeq/DATA_REPOSITORY/MVCFS_HG38/SGP7619merged/SGP7619merged_fltBravo.vcf.gz | cut -f 1 | while read C; do bcftools view -O z -o split.${C}.vcf.gz /mnt/dataSeq/DATA_REPOSITORY/MVCFS_HG38/SGP7619merged/SGP7619merged_fltBravo.vcf.gz "${C}" ; done
-
-# Convert to bgzip
-# gunzip -c SGP7619merged_fltBravo_fltPortal.vcf.gz | bgzip  > file.vcf.gz
-# bcftools index file.vcf.gz
-
-# #Check if the genotype was removed
-# bcftools query -f '[%GT]\n' -s PX3840 -r chr1:1516030-1516038 file.vcf.gz
