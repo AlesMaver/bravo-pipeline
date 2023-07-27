@@ -12,6 +12,8 @@ workflow BravoDataPreparation {
     File input_vcf_index
 
     File interval_list
+    Int? thinning_parameter
+
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
     #Array[String] chromosomes = ["chr21", "chr22", "chrY"]
 
@@ -53,7 +55,8 @@ workflow BravoDataPreparation {
 
   call SplitRegions {
     input:
-      input_bed = ConvertIntervalListToBed.converted_bed
+      input_bed = ConvertIntervalListToBed.converted_bed,
+      thinning_parameter = thinning_parameter
   }
 
   # scatter (scatter_region in SplitRegions.scatter_regions ) {
@@ -69,6 +72,7 @@ workflow BravoDataPreparation {
   		input:
   			input_vcf = input_vcf,
   			input_vcf_index = input_vcf_index,
+        samplesFile = samplesFile,
   			chromosome = chromosome,
         referenceFasta = referenceFasta
   	}
@@ -193,7 +197,8 @@ task ConvertIntervalListToBed {
       O=interval.bed
 
     # Format the scatter regions
-    awk '{print $1":"$2"-"$3}' interval.bed |awk 'NR % 50 == 0' > regions.txt
+    # awk '{print $1":"$2"-"$3}' interval.bed |awk 'NR % 50 == 0' > regions.txt # FOR TESTING - This will subset every 50th row in the regions
+    awk '{print $1":"$2"-"$3}' interval.bed > regions.txt
 
     #output_regions=$(cat output_regions.txt)
   >>>
@@ -217,12 +222,14 @@ task ConvertIntervalListToBed {
 task SplitRegions {
   input {
     File input_bed
+    Int? thinning_parameter
   }
 
   # Command section where the conversion is performed using Picard
   command <<<
     # Convert an interval list to BED 
-    bedtools makewindows -b ~{input_bed} -w 1000000 |awk '{print $1":"$2"-"$3}' |awk 'NR % 100 == 0' > regions.txt
+    bedtools makewindows -b ~{input_bed} -w 1000000 |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
+    # bedtools makewindows -b ~{input_bed} -w 3000000 |awk '{print $1":"$2"-"$3}' > regions.txt
   >>>
 
   # Specify the runtime parameters for the task
@@ -263,6 +270,7 @@ task VCFsplitter {
     # Command parameters
     File input_vcf
     File input_vcf_index
+    File samplesFile
 
     String chromosome
     File referenceFasta
@@ -273,7 +281,7 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome} -s PX9375,PX3188 ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome} -S ~{samplesFile} ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
