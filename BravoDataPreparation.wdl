@@ -13,6 +13,7 @@ workflow BravoDataPreparation {
 
     File interval_list
     Int? thinning_parameter
+    Int  scatter_region_size = 3000000
 
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
 
@@ -21,6 +22,9 @@ workflow BravoDataPreparation {
     # List of sampls and cram file locations for CRAM generation step
     String sampleLocationPath
     #File sampleLocationFile
+    
+    # Generate CRAMs optionally (if only update of the frequencies is needed)
+    Boolean generate_crams = true
 
     # Reference FASTA file - hg37/38
     File referenceFasta
@@ -49,7 +53,8 @@ workflow BravoDataPreparation {
   call SplitRegions {
     input:
       input_bed = ConvertIntervalListToBed.converted_bed,
-      thinning_parameter = thinning_parameter
+      thinning_parameter = thinning_parameter,
+      scatter_region_size = scatter_region_size
   }
 
   scatter (chromosome in SplitRegions.scatter_regions ) {
@@ -93,15 +98,18 @@ workflow BravoDataPreparation {
   			infoFields = infoFields
 		}
 
-    call cramPreparation.prepareCram as prepareCRAMs {
-      input:
-        chromosome = chromosome,
-        chromosomeVCF = VCFsplitter.output_vcf,
-        chromosomeVCFIndex = VCFsplitter.output_vcf_index,
-        samplesFile = samplesFile,
-        referenceFasta = referenceFasta,
-        sampleLocationPath = sampleLocationPath
-        #sampleLocationFile = sampleLocationFile
+    if (generate_crams) {
+      call cramPreparation.prepareCram as prepareCRAMs {
+        input:
+          chromosome = chromosome,
+          chromosomeVCF = VCFsplitter.output_vcf,
+          chromosomeVCFIndex = VCFsplitter.output_vcf_index,
+          samplesFile = samplesFile,
+          referenceFasta = referenceFasta,
+          sampleLocationPath = sampleLocationPath
+          #sampleLocationFile = sampleLocationFile
+      }
+
     }
   } # Close per chromosome scatter
 
@@ -121,14 +129,16 @@ workflow BravoDataPreparation {
       output_name = "output"
   }
 
-  scatter (chromosome in chromosomes) {
-    call concatCrams {
-      input:
-        input_crams = prepareCRAMs.combined_cram_result,
-        input_cram_indices = prepareCRAMs.combined_cram_result_index,
+  if (generate_crams) {
+    scatter (chromosome in chromosomes) {
+      call concatCrams {
+        input:
+          input_crams = select_all(prepareCRAMs.combined_cram_result),
+          input_cram_indices = select_all(prepareCRAMs.combined_cram_result_index),
 
-        chromosome = chromosome,
-        referenceFasta = referenceFasta
+          chromosome = chromosome,
+          referenceFasta = referenceFasta
+      }
     }
   }
 
@@ -160,8 +170,8 @@ workflow BravoDataPreparation {
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
     File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants.output_vcf_index
-    Array[File] out_crams = concatCrams.output_cram
-    Array[File] out_crais = concatCrams.output_cram_index
+    Array[File]? out_crams = concatCrams.output_cram
+    Array[File]? out_crais = concatCrams.output_cram_index
   }
 } # Close workflow
 
@@ -208,12 +218,13 @@ task SplitRegions {
   input {
     File input_bed
     Int? thinning_parameter
+    Int scatter_region_size
   }
 
   # Command section where the conversion is performed using Picard
   command <<<
     # Convert an interval list to BED 
-    bedtools makewindows -b ~{input_bed} -w 1000000 |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
+    bedtools makewindows -b ~{input_bed} -w ~{scatter_region_size} |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
     # bedtools makewindows -b ~{input_bed} -w 3000000 |awk '{print $1":"$2"-"$3}' > regions.txt
   >>>
 
