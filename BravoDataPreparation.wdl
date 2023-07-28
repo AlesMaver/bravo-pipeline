@@ -202,7 +202,7 @@ task ConvertIntervalListToBed {
   runtime {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
     cpu: 1
-    memory: "2G"
+    memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
@@ -232,7 +232,7 @@ task SplitRegions {
   runtime {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
     cpu: 1
-    memory: "2G"
+    memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
