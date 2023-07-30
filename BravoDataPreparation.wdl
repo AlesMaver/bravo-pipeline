@@ -381,7 +381,7 @@ task concatVcf {
   command <<<
   set -e
     bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz
+    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir ./sort_tmp 
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
