@@ -380,8 +380,9 @@ task concatVcf {
   
   command <<<
   set -e
+    mkdir $PWD/sort_tmp
     bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir ./sort_tmp -m 9000000000
+    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9000000000
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
