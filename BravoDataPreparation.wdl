@@ -114,7 +114,7 @@ workflow BravoDataPreparation {
   } # Close per chromosome scatter
 
   # Concatenate VCFs from prepare percentiles task
-  call concatVcf as concatVcf_RemoveReportedVariants{
+  call concatVcf as concatVcf_RemoveReportedVariants {
     input:
       input_vcfs = VCFindex.output_vcf,
       input_vcfs_indices = VCFindex.output_vcf_index,
@@ -201,8 +201,8 @@ task ConvertIntervalListToBed {
   # Specify the runtime parameters for the task
   runtime {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
+    #cpu: 1
+    #memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
@@ -231,8 +231,8 @@ task SplitRegions {
   # Specify the runtime parameters for the task
   runtime {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
+    #cpu: 1
+    #memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
@@ -282,8 +282,8 @@ task VCFsplitter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -309,8 +309,8 @@ task RemoveReportedVariants {
   }
   runtime {
     docker: "amancevice/pandas"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -331,8 +331,8 @@ task VCFindex {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -360,8 +360,8 @@ task VCFfilter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -388,8 +388,8 @@ task concatVcf {
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    requested_memory_mb_per_core: 10000
-    cpu: 1
+    #requested_memory_mb_per_core: 10000
+    #cpu: 1
     #runtime_minutes: 90
   }
   output {
@@ -429,8 +429,8 @@ task concatCrams {
 
   runtime {
     docker: "alesmaver/bravo-pipeline-sgp:latest"
-    requested_memory_mb_per_core: 5000
-    cpu: 1
+    #requested_memory_mb_per_core: 5000
+    #cpu: 1
     #runtime_minutes: 90
   }
   output {
