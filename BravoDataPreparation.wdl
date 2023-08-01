@@ -75,7 +75,8 @@ workflow BravoDataPreparation {
 
     call VCFindex {
       input:
-        input_vcf = RemoveReportedVariants.output_vcf
+        input_vcf = RemoveReportedVariants.output_vcf,
+        chromosome = chromosome
     }
 
     call VCFfilter {
@@ -224,7 +225,11 @@ task SplitRegions {
   # Command section where the conversion is performed using Picard
   command <<<
     # Convert an interval list to BED 
-    bedtools makewindows -b ~{input_bed} -w ~{scatter_region_size} |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
+    window=~{scatter_region_size}
+    step=$(($window + 1))
+    #step=$window
+
+    bedtools makewindows -b ~{input_bed} -w $window -s $step |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
     # bedtools makewindows -b ~{input_bed} -w 3000000 |awk '{print $1":"$2"-"$3}' > regions.txt
   >>>
 
@@ -277,7 +282,7 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome} -S ~{samplesFile} ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome} -t ~{chromosome} -S ~{samplesFile} ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
@@ -322,12 +327,15 @@ task RemoveReportedVariants {
 task VCFindex {
   input {
     File input_vcf
+    String chromosome = "chromosome"
   }
+
+  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
 
   command {
     set -e
-    zcat ~{input_vcf} | bcftools view -Oz -o indexed.vcf.gz
-    bcftools index  -t indexed.vcf.gz
+    zcat ~{input_vcf} | bcftools view -Oz -o ~{chromosome_filename}.indexed.vcf.gz
+    bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -336,8 +344,8 @@ task VCFindex {
     #runtime_minutes: 180
   }
   output {
-    File output_vcf = "indexed.vcf.gz"
-    File output_vcf_index = "indexed.vcf.gz.tbi"
+    File output_vcf = "~{chromosome_filename}.indexed.vcf.gz"
+    File output_vcf_index = "~{chromosome_filename}.indexed.vcf.gz.tbi"
   }
 }
 
@@ -381,8 +389,9 @@ task concatVcf {
   command <<<
   set -e
     mkdir $PWD/sort_tmp
-    bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9000000000
+    bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    # bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
+    # bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9000000000
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
