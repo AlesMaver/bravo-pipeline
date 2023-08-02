@@ -334,13 +334,13 @@ task VCFindex {
 
   command {
     set -e
-    zcat ~{input_vcf} | bcftools view -Oz -o ~{chromosome_filename}.indexed.vcf.gz
+    zcat ~{input_vcf} | | bcftools +fill-tags | bcftools view --threads 10 -Oz -o ~{chromosome_filename}.indexed.vcf.gz
     bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    requested_memory_mb_per_core: 1000
+    cpu: 10
     #runtime_minutes: 180
   }
   output {
