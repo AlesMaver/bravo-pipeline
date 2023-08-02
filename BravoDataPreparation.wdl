@@ -334,7 +334,7 @@ task VCFindex {
 
   command {
     set -e
-    zcat ~{input_vcf} | | bcftools +fill-tags | bcftools view --threads 10 -Oz -o ~{chromosome_filename}.indexed.vcf.gz
+    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads 10 -Oz -o ~{chromosome_filename}.indexed.vcf.gz
     bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz
   }
   runtime {
