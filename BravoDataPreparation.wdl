@@ -389,16 +389,16 @@ task concatVcf {
   command <<<
   set -e
     mkdir $PWD/sort_tmp
-    bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    bcftools concat --threads 10 -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
     # bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
     # bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9000000000
-    bcftools index -t ~{output_name}.vcf.gz
+    bcftools index --threads 10 -t ~{output_name}.vcf.gz
   >>>
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    requested_memory_mb_per_core: 10000
-    cpu: 1
+    requested_memory_mb_per_core: 1000
+    cpu: 10
     #runtime_minutes: 90
   }
   output {
