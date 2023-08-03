@@ -76,14 +76,16 @@ workflow BravoDataPreparation {
     call VCFindex {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
-        chromosome = chromosome
+        chromosome = chromosome,
+        threads = threads
     }
 
     call VCFfilter {
   		input:
   			input_vcf = VCFindex.output_vcf,
         input_vcf_index = VCFindex.output_vcf_index,
-        referenceFasta = referenceFasta
+        referenceFasta = referenceFasta,
+        threads = threads
   	}
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
@@ -119,7 +121,8 @@ workflow BravoDataPreparation {
     input:
       input_vcfs = VCFindex.output_vcf,
       input_vcfs_indices = VCFindex.output_vcf_index,
-      output_name = "output_RemoveReportedVariants"
+      output_name = "output_RemoveReportedVariants",
+      threads = threads
   }
 
   # Concatenate VCFs with removed reported variants
@@ -127,7 +130,8 @@ workflow BravoDataPreparation {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
       input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
-      output_name = "output"
+      output_name = "output",
+      threads = threads
   }
 
   if (generate_crams) {
@@ -202,8 +206,8 @@ task ConvertIntervalListToBed {
   # Specify the runtime parameters for the task
   runtime {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
+    #cpu: 1
+    #memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
@@ -236,8 +240,8 @@ task SplitRegions {
   # Specify the runtime parameters for the task
   runtime {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
+    #cpu: 1
+    #memory: "8G"
   }
 
   # Specify the output declaration to capture the output BED file
@@ -287,8 +291,8 @@ task VCFsplitter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -314,8 +318,8 @@ task RemoveReportedVariants {
   }
   runtime {
     docker: "amancevice/pandas"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    #requested_memory_mb_per_core: 2000
+    #cpu: 3
     #runtime_minutes: 180
   }
   output {
@@ -328,19 +332,20 @@ task VCFindex {
   input {
     File input_vcf
     String chromosome = "chromosome"
+    Int threads
   }
 
   String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
 
   command {
     set -e
-    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads 10 -Oz -o ~{chromosome_filename}.indexed.vcf.gz
+    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads ~{threads} -Oz -o ~{chromosome_filename}.indexed.vcf.gz
     bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
-    cpu: 10
+    cpu: threads
     #runtime_minutes: 180
   }
   output {
@@ -355,21 +360,21 @@ task VCFfilter {
     # Command parameters
     File input_vcf
     File input_vcf_index
-
     File referenceFasta
+    Int threads
   }
 
   command {
     set -e
     #zcat ~{input_vcf} | bcftools view -Oz -o input.vcf.gz
     #bcftools index input.vcf.gz
-    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter -i "QUAL>100" -Oz -o filtered.vcf.gz
+    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o filtered.vcf.gz
     bcftools index -t filtered.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
+    requested_memory_mb_per_core: 1000
+    cpu: threads
     #runtime_minutes: 180
   }
   output {
@@ -384,21 +389,22 @@ task concatVcf {
       Array[File] input_vcfs
       Array[File] input_vcfs_indices
       String output_name
+      Int threads
     }
   
   command <<<
   set -e
     mkdir $PWD/sort_tmp
-    bcftools concat --threads 10 -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
     # bcftools concat -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
     # bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9000000000
-    bcftools index --threads 10 -t ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz
   >>>
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 1000
-    cpu: 10
+    cpu: threads
     #runtime_minutes: 90
   }
   output {
@@ -438,8 +444,8 @@ task concatCrams {
 
   runtime {
     docker: "alesmaver/bravo-pipeline-sgp:latest"
-    requested_memory_mb_per_core: 5000
-    cpu: 1
+    #requested_memory_mb_per_core: 5000
+    #cpu: 1
     #runtime_minutes: 90
   }
   output {
