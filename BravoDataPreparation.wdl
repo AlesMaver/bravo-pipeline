@@ -122,6 +122,13 @@ workflow BravoDataPreparation {
       output_name = "output_RemoveReportedVariants"
   }
 
+  call concatVcf as concatVcf_RemoveReportedVariants_filtered{
+    input:
+      input_vcfs = VCFfilter.output_vcf,
+      input_vcfs_indices = VCFfilter.output_vcf_index,
+      output_name = "output_RemoveReportedVariants_filtered"
+  }
+
   # Concatenate VCFs with removed reported variants
   call concatVcf {
     input:
@@ -171,6 +178,8 @@ workflow BravoDataPreparation {
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
     File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants.output_vcf_index
+    File RemoveReportedVariants_filtered_output_vcf = concatVcf_RemoveReportedVariants_filtered.output_vcf
+    File RemoveReportedVariants_filtered_output_vcf_index = concatVcf_RemoveReportedVariants_filtered.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
     Array[File]? out_crais = concatCrams.output_cram_index
   }
@@ -346,6 +355,33 @@ task VCFindex {
   output {
     File output_vcf = "~{chromosome_filename}.indexed.vcf.gz"
     File output_vcf_index = "~{chromosome_filename}.indexed.vcf.gz.tbi"
+  }
+}
+
+##############################
+task VCFclean {
+  input {
+    File input_vcf
+    File input_vcf_index
+    String chromosome = "chromosome"
+  }
+
+  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
+
+  command {
+    set -e
+    bcftools view ~{input_vcf} | bcftools filter -i "QUAL>100" | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' --threads 10 -Oz -o ~{chromosome_filename}.clean.vcf.gz
+    bcftools index -t ~{chromosome_filename}.clean.vcf.gz
+  }
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: 1000
+    cpu: 10
+    #runtime_minutes: 180
+  }
+  output {
+    File output_vcf = "~{chromosome_filename}.clean.vcf.gz"
+    File output_vcf_index = "~{chromosome_filename}.clean.vcf.gz.tbi"
   }
 }
 
