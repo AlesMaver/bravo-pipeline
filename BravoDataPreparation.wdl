@@ -13,7 +13,7 @@ workflow BravoDataPreparation {
 
     File interval_list
     Int? thinning_parameter
-    Int  scatter_region_size = 3000000
+    Int  scatter_region_size = 1000000
 
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
 
@@ -35,7 +35,7 @@ workflow BravoDataPreparation {
 
     ### Prepare percentiles ###
     Array[String] infoFields
-    Int threads = 10
+    Int threads = 40
     Int numberPercentiles = 10
     String description = "Description"
 
@@ -129,7 +129,8 @@ workflow BravoDataPreparation {
     input:
       input_vcfs = VCFfilter.output_vcf,
       input_vcfs_indices = VCFfilter.output_vcf_index,
-      output_name = "output_RemoveReportedVariants_filtered"
+      output_name = "output_RemoveReportedVariants_filtered",
+      threads = threads
   }
 
   # Concatenate VCFs with removed reported variants
