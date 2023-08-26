@@ -18,6 +18,8 @@ workflow prepareCram {
     String sampleLocationPath
     #File sampleLocationFile
     #File sampleIndexLocationFile
+
+    Int threads = 40
     }
 
     call extractId {
@@ -35,7 +37,8 @@ workflow prepareCram {
             sampleLocationPath = sampleLocationPath,
             #sampleLocationFile = sampleLocationFile,
             #sampleIndexLocationFile = sampleIndexLocationFile,
-            referenceFasta = referenceFasta
+            referenceFasta = referenceFasta,
+            threads = threads
     }
     output {
         File combined_cram_result = prepareSequences.combined_cram
@@ -77,6 +80,7 @@ task prepareSequences {
         #File sampleLocationFile
         #File sampleIndexLocationFile
         File referenceFasta
+        Int threads
         }
 
     String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
@@ -95,7 +99,7 @@ task prepareSequences {
             bcftools query -l ~{input_vcf} | awk '{print $0, "~{sampleLocationPath}/"$0".cram", "~{sampleLocationPath}/"$0".cram.crai"}' OFS="\t" > samples_locations.txt
             python3 /srv/data/bravo_data_prep/data_prep/py_tools/prepare_sequences2.py cram -i ~{chromosomeVCF} -c samples_locations.txt -w 100 -r ~{referenceFasta} -o ~{chromosome_filename}.cram
             samtools index ~{chromosome_filename}.cram
-            samtools sort -@ 4 ~{chromosome_filename}.cram -o ~{chromosome_filename}.bam
+            samtools sort -@ ~{threads} ~{chromosome_filename}.cram -o ~{chromosome_filename}.bam
             samtools index ~{chromosome_filename}.bam
             rm ~{chromosome_filename}.cram*
             samtools view -T ~{referenceFasta} -O CRAM ~{chromosome_filename}.bam -o cram/~{chromosome_filename}.cram
@@ -115,6 +119,7 @@ task prepareSequences {
     runtime {
         docker: "alesmaver/bravo-pipeline-sgp:latest"
         #cpu: "4"
+        cpu: threads
         bootDiskSizeGb: "50"
         continueOnReturnCode: true
     }

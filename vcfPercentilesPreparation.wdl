@@ -31,7 +31,7 @@ workflow prepareVCFPercentiles {
 
         ### Prepare percentiles ###
         Array[String] infoFields
-        Int threads = 10
+        Int threads = 40
         Int numberPercentiles = 10
         String description = "Description"
     }
@@ -51,7 +51,8 @@ workflow prepareVCFPercentiles {
         input:
             original_input_vcf = input_vcf,
             original_input_vcf_index = input_vcf_index,
-            analysed_vcf = computeAlleleCountsAndHistograms.out
+            analysed_vcf = computeAlleleCountsAndHistograms.out,
+            threads = threads
     }
 
     call variantEffectPredictor {
@@ -66,7 +67,8 @@ workflow prepareVCFPercentiles {
     }
 
     call addCaddScores {
-        input: chromosomeVCF = variantEffectPredictor.out,
+        input: 
+            chromosomeVCF = variantEffectPredictor.out,
             cadScores = cadScores,
             cadScoresIndex = cadScoresIndex
     }
@@ -138,19 +140,20 @@ task AddOriginalVCFAnnotations {
       File original_input_vcf
       File original_input_vcf_index
       File analysed_vcf
+      Int threads
     }
   
   command <<<
   set -e
     bcftools index -t ~{analysed_vcf}
-    bcftools annotate -a ~{original_input_vcf} -c +INFO ~{analysed_vcf} -Oz -o output.vcf.gz
+    bcftools annotate  --threads ~{threads} -a ~{original_input_vcf} -c +INFO ~{analysed_vcf} -Oz -o output.vcf.gz
     bcftools index -t output.vcf.gz
   >>>
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    #requested_memory_mb_per_core: 5000
-    #cpu: 1
+    requested_memory_mb_per_core: 2000
+    cpu: threads
     #runtime_minutes: 90
   }
   output {

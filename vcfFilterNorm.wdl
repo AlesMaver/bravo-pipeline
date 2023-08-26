@@ -18,13 +18,12 @@ workflow vcfFilterNorm {
 
     # File for samples
     File samplesFile
-    # List of sampls and cram file locations for CRAM generation step
-    String sampleLocationPath
 
     # Reference FASTA file - hg37/38
     File referenceFasta
     Int threads = 40
-    String vcf_basename = basename(input_vcf, ".vcf.gz")
+    String output_vcf_basename = basename(input_vcf, ".vcf.gz")
+    String output_vcf_suffix = "_fltNorm"
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -40,15 +39,17 @@ workflow vcfFilterNorm {
   }
 
   scatter (chromosome in SplitRegions.scatter_regions ) {
-#    call vcfTasks.VCFsplitter {
-#      input:
-#        input_vcf = input_vcf,
-#        input_vcf_index = input_vcf_index,
-#        samplesFile = samplesFile,
-#        chromosome = chromosome,
-#        referenceFasta = referenceFasta,
-#        threads = threads
-#    }
+
+    ## replaced by VCFsplit + VCFnorm in order to do VCFfilter in-between
+    #    call vcfTasks.VCFsplitter {
+    #      input:
+    #        input_vcf = input_vcf,
+    #        input_vcf_index = input_vcf_index,
+    #        samplesFile = samplesFile,
+    #        chromosome = chromosome,
+    #        referenceFasta = referenceFasta,
+    #        threads = threads
+    #    }
 
     call vcfTasks.VCFsplit {
       input:
@@ -81,7 +82,7 @@ workflow vcfFilterNorm {
     input:
       input_vcfs = VCFnorm.output_vcf,
       input_vcfs_indices = VCFnorm.output_vcf_index,
-      output_name = vcf_basename + "_fltNorm"
+      output_name = output_vcf_basename + output_vcf_suffix,
       threads = threads
   }
 

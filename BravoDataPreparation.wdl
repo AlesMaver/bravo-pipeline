@@ -42,8 +42,6 @@ workflow BravoDataPreparation {
 
     # Remove reported variants
     File reported_variants
-
-    String vcf_basename = basename(input_vcf, ".vcf.gz")
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -91,16 +89,17 @@ workflow BravoDataPreparation {
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
   		input:
-  			input_vcf = VCFfilter.output_vcf,
-  			input_vcf_index = VCFfilter.output_vcf_index,
-  			samplesFile = samplesFile,
-  			#referenceDir = referenceDir, 
-  			#lofteeDir = lofteeDir,
-  			referenceFasta = referenceFasta,
-  			cadScores = cadScores,
-  			cadScoresIndex = cadScoresIndex,
-  			infoFields = infoFields
-		}
+        input_vcf = VCFfilter.output_vcf,
+        input_vcf_index = VCFfilter.output_vcf_index,
+        samplesFile = samplesFile,
+        referenceFasta = referenceFasta,
+        cadScores = cadScores,
+        cadScoresIndex = cadScoresIndex,
+        infoFields = infoFields,
+        threads = threads,
+        numberPercentiles = numberPercentiles,
+        description = description
+    }
 
     if (generate_crams) {
       call cramPreparation.prepareCram as prepareCRAMs {
@@ -110,8 +109,9 @@ workflow BravoDataPreparation {
           chromosomeVCFIndex = VCFsplitter.output_vcf_index,
           samplesFile = samplesFile,
           referenceFasta = referenceFasta,
-          sampleLocationPath = sampleLocationPath
+          sampleLocationPath = sampleLocationPath,
           #sampleLocationFile = sampleLocationFile
+          threads = threads
       }
 
     }

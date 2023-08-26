@@ -186,7 +186,7 @@ task VCFfilter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 1000
+    requested_memory_mb_per_core: 2000
     cpu: threads
     #runtime_minutes: 180
   }
@@ -244,8 +244,8 @@ task RemoveReportedVariants {
   }
   runtime {
     docker: "amancevice/pandas"
-    #requested_memory_mb_per_core: 2000
-    #cpu: 3
+    requested_memory_mb_per_core: 2000
+    cpu: 8
     #runtime_minutes: 180
   }
   output {
@@ -342,8 +342,8 @@ task concatCrams {
 
   runtime {
     docker: "alesmaver/bravo-pipeline-sgp:latest"
-    requested_memory_mb_per_core: 5000
-    cpu: 1
+    #requested_memory_mb_per_core: 5000
+    #cpu: 1
     #runtime_minutes: 90
   }
   output {
