@@ -59,28 +59,27 @@ workflow vcfFilterNorm {
         threads = threads
     }
 
-    call vcfTasks.VCFfilter {
+    call vcfTasks.VCFnorm {
       input:
         input_vcf = VCFsplit.output_vcf,
         input_vcf_index = VCFsplit.output_vcf_index,
-        threads = threads
-    }
-
-    call vcfTasks.VCFnorm {
-      input:
-        input_vcf = VCFfilter.output_vcf,
-        input_vcf_index = VCFfilter.output_vcf_index,
         referenceFasta = referenceFasta,
         threads = threads
     }
 
+    call vcfTasks.VCFfilter {
+      input:
+        input_vcf = VCFnorm.output_vcf,
+        input_vcf_index = VCFnorm.output_vcf_index,
+        threads = threads
+    }
 
   } # Close per chromosome scatter
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = VCFnorm.output_vcf,
-      input_vcfs_indices = VCFnorm.output_vcf_index,
+      input_vcfs = VCFfilter.output_vcf,
+      input_vcfs_indices = VCFfilter.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
