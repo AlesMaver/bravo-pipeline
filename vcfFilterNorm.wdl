@@ -2,7 +2,7 @@ version 1.0
 ## Copyright CMG@KIGM, Peter Juvan
 
 # Subworkflows
-import "./vcfPercentilesPreparation.wdl" as vcfPercentilesPreparation
+import "./vcfTasks.wdl" as vcfTasks
 
 # WORKFLOW DEFINITION 
 workflow vcfFilterNorm {
@@ -23,7 +23,6 @@ workflow vcfFilterNorm {
     File referenceFasta
     Int threads = 40
     String output_vcf_basename = basename(input_vcf, ".vcf.gz")
-    String output_vcf_suffix = "_fltNorm"
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -82,7 +81,7 @@ workflow vcfFilterNorm {
     input:
       input_vcfs = VCFnorm.output_vcf,
       input_vcfs_indices = VCFnorm.output_vcf_index,
-      output_name = output_vcf_basename + output_vcf_suffix,
+      output_name = output_vcf_basename,
       threads = threads
   }
 
