@@ -60,7 +60,7 @@ task crossValAdmixture {
 
   runtime {
     docker: "quay.io/biocontainers/admixture:1.3.0--0"
-    requested_memory_mb_per_core: 256
+    #requested_memory_mb_per_core: 256
     cpu: threads
   }
   output {
