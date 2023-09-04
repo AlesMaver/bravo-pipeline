@@ -135,35 +135,6 @@ task VCFsplit {
   }
 }
 
-
-## OBSOLETE ###################
-#task VCFclean {
-#  input {
-#    File input_vcf
-#    File input_vcf_index
-#    String chromosome = "chromosome"
-#    Int threads
-#  }
-#
-#  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
-#
-#  command {
-#    set -e
-#    bcftools view ~{input_vcf} | bcftools filter -i "QUAL>100" | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' --threads ~{threads} -Oz -o ~{chromosome_filename}.clean.vcf.gz
-#    bcftools index -t ~{chromosome_filename}.clean.vcf.gz
-#  }
-#  runtime {
-#    docker: "dceoy/bcftools"
-#    requested_memory_mb_per_core: 1000
-#    cpu: threads
-#    #runtime_minutes: 180
-#  }
-#  output {
-#    File output_vcf = "~{chromosome_filename}.clean.vcf.gz"
-#    File output_vcf_index = "~{chromosome_filename}.clean.vcf.gz.tbi"
-#  }
-#}
-
 ##############################
 ## bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | annotate -x FORMAT/PGT,FORMAT/PID | --types snps,indels | -i 'F_MISSING<1' |
 ##          +fill-tags | filter -e 'INFO/AC=0' | -i "QUAL>100" 
@@ -181,7 +152,7 @@ task VCFfilter {
     set -e
     #zcat ~{input_vcf} | bcftools view -Oz -o input.vcf.gz
     #bcftools index input.vcf.gz
-    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools view -i 'F_MISSING<1' | bcftools +fill-tags | bcftools filter -e 'INFO/AC=0' | bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt.vcf.gz
+    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools +fill-tags | bcftools view -i 'F_MISSING<1' | bcftools filter -e 'INFO/AC=0' | bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt.vcf.gz
     bcftools index -t ~{vcf_basename}_flt.vcf.gz
   }
   runtime {
