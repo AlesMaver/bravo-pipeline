@@ -21,7 +21,7 @@ workflow vcfFilterNorm {
 
     # Reference FASTA file - hg37/38
     File referenceFasta
-    Int threads = 40
+    Int threads = 10
     String output_vcf_basename = basename(input_vcf, ".vcf.gz")
   }
 
