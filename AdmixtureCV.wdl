@@ -7,7 +7,7 @@ workflow AdmixtureCV {
     File input_bed
     File input_bim
     File input_fam
-    Array[Int] num_populations = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+    Array[Int] num_populations = [2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     Int threads = 256
     Int cv_fold = 5
     String output_basename = basename(input_bed, ".bed")
