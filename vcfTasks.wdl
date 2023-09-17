@@ -125,7 +125,7 @@ task VCFsplit {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
+    requested_memory_mb_per_core: 1000
     cpu: threads
     #runtime_minutes: 180
   }
@@ -157,7 +157,7 @@ task VCFfilter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
+    requested_memory_mb_per_core: 1000
     cpu: threads
     #runtime_minutes: 180
   }
@@ -187,7 +187,7 @@ task VCFnorm {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
+    requested_memory_mb_per_core: 1000
     cpu: threads
     #runtime_minutes: 180
   }
