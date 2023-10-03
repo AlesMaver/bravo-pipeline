@@ -4,22 +4,16 @@ version 1.0
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
 
-workflow vcfFilterNorm {
+workflow vcfMerge {
   input {
-    File input_vcf
-    File input_vcf_index
+    Array [File] input_vcfs
 
     File interval_list
     Int? thinning_parameter
     Int  scatter_region_size = 1000000
 
-    # File for samples
-    File samplesFile
-
-    # Reference FASTA file - hg37/38
-    File referenceFasta
     Int threads = 5
-    String output_vcf_basename = basename(input_vcf, ".vcf.gz") + "_nrmFlt"
+    String output_vcf_basename = basename(select_first(input_vcfs), ".vcf.gz") + "_merged"
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -36,26 +30,21 @@ workflow vcfFilterNorm {
 
   scatter (chromosome in SplitRegions.scatter_regions ) {
 
-    call vcfTasks.VCFsplit {
-      input:
-        input_vcf = input_vcf,
-        samplesFile = samplesFile,
-        chromosome = chromosome,
-        threads = threads
-    }
+    scatter (input_vcf in input_vcfs) {
+      
+      call vcfTasks.VCFsplit {
+        input:
+          input_vcf = input_vcf,
+          chromosome = chromosome,
+          threads = threads
+      }
 
-    call vcfTasks.VCFnorm {
-      input:
-        input_vcf = VCFsplit.output_vcf,
-        input_vcf_index = VCFsplit.output_vcf_index,
-        referenceFasta = referenceFasta,
-        threads = threads
-    }
+    } # close vcf scatter
 
-    call vcfTasks.VCFfilter {
+    call vcfTasks.VCFmerge {
       input:
-        input_vcf = VCFnorm.output_vcf,
-        input_vcf_index = VCFnorm.output_vcf_index,
+        input_vcfs = VCFsplit.output_vcf,
+        output_name = output_vcf_basename
         threads = threads
     }
 
@@ -63,8 +52,8 @@ workflow vcfFilterNorm {
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = VCFfilter.output_vcf,
-      input_vcfs_indices = VCFfilter.output_vcf_index,
+      input_vcfs = VCFmerge.output_vcf,
+      input_vcfs_indices = VCFmerge.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }

@@ -109,8 +109,7 @@ task VCFsplit {
   input {
     # Command parameters
     File input_vcf
-    File input_vcf_index
-    File samplesFile
+    File? samplesFile
     String chromosome
     Int threads
   }
@@ -120,7 +119,7 @@ task VCFsplit {
 
   command {
     set -e
-    bcftools view -r ~{chromosome} -t ~{chromosome} -S ~{samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{chromosome} -t ~{chromosome} ~{"-S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
@@ -197,6 +196,33 @@ task VCFnorm {
   }
 }
 
+##############################
+## bcftools merge -Oz vcf1 vcf2 ... > vcf_merged
+task VCFmerge {
+  input {
+    # Command parameters
+    Array [File] input_vcfs
+    String output_name
+    Int threads
+  }
+
+  command {
+    set -e
+    bcftools merge --threads ~{threads} -Oz ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz
+  }
+
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: 1000
+    cpu: threads
+    #runtime_minutes: 180
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
 
 ##############################
 task RemoveReportedVariants {

@@ -36,7 +36,7 @@ workflow BravoDataPreparation {
 
     ### Prepare percentiles ###
     Array[String] infoFields
-    Int threads = 40
+    Int threads = 4
     Int numberPercentiles = 10
     String description = "Description"
 
