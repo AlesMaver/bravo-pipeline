@@ -109,6 +109,7 @@ task VCFsplit {
   input {
     # Command parameters
     File input_vcf
+    File input_vcf_index
     File? samplesFile
     String chromosome
     Int threads

@@ -39,6 +39,7 @@ workflow vcfFilterNorm {
     call vcfTasks.VCFsplit {
       input:
         input_vcf = input_vcf,
+        input_vcf_index = input_vcf_index,
         samplesFile = samplesFile,
         chromosome = chromosome,
         threads = threads

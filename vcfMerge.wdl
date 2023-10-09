@@ -35,6 +35,7 @@ workflow vcfMerge {
       call vcfTasks.VCFsplit {
         input:
           input_vcf = input_vcf,
+          input_vcf_index = basename(input_vcf, ".vcf.gz") + ".vcf.gz.tbi",
           chromosome = chromosome,
           threads = threads
       }
