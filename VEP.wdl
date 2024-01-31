@@ -124,6 +124,7 @@ task ConvertIntervalListToBed {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
     cpu: 1
     memory: "8G"
+    runtime_minutes: 10
   }
 
   # Specify the output declaration to capture the output BED file
@@ -158,6 +159,7 @@ task SplitRegions {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
     cpu: 1
     memory: "8G"
+    runtime_minutes: 10
   }
 
   # Specify the output declaration to capture the output BED file
@@ -181,7 +183,7 @@ task GetClinVarVCF {
     docker: "alesmaver/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 3
-    #runtime_minutes: 180
+    runtime_minutes: 20
   }
 
   output {
@@ -214,7 +216,7 @@ task AnnotateWithVCF {
     docker: "alesmaver/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 3
-    #runtime_minutes: 180
+    runtime_minutes: 59
   }
 
   output {
