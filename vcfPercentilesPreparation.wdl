@@ -149,8 +149,8 @@ task AddOriginalVCFAnnotations {
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    requested_memory_mb_per_core: 5000
-    cpu: 1
+    #requested_memory_mb_per_core: 5000
+    #cpu: 1
     #runtime_minutes: 90
   }
   output {
@@ -238,7 +238,7 @@ task addCaddScores {
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
-        cpu: "1"
+        #cpu: "1"
         bootDiskSizeGb: "150"
     }
 }
@@ -299,7 +299,7 @@ task addPercentiles {
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
-        cpu: "1"
+        #cpu: "1"
         bootDiskSizeGb: "150"
     }
 

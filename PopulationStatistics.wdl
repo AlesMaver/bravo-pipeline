@@ -13,7 +13,7 @@ workflow PopulationStatistics {
 
     File interval_list
     Int? thinning_parameter
-    Int  scatter_region_size = 3000000
+    Int  scatter_region_size = 1000000
 
     Boolean annotate_with_clinvar = true
 
