@@ -16,6 +16,7 @@ workflow VEP_workflow {
     Int  scatter_region_size = 300000
 
     File samples_file
+    Int vep_cpus = 2
 
     Boolean annotate_with_clinvar = true
 
@@ -84,7 +85,7 @@ workflow VEP_workflow {
         input:
             input_vcf = select_first([AnnotateWithVCF.output_vcf, input_vcf]),
             input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, input_vcf_index]),
-            cpus = 2
+            cpus = vep_cpus
         }
     }
 
@@ -392,7 +393,7 @@ task VCFprocessing {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 3
-    #runtime_minutes: 180
+    runtime_minutes: 59
   }
   output {
     File output_vcf = "~{chromosome_filename}.~{vcf_basename}.vcf.gz"
@@ -435,6 +436,7 @@ task RunVEP {
         docker: "alesmaver/vep_with_references"
         requested_memory_mb_per_core: 2000
         cpu: cpus
+        runtime_minutes: 59
     }
 
     output {
