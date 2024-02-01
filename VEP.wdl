@@ -428,7 +428,6 @@ task RunVEP {
                 --fork "~{cpus}" --cache --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
                 --assembly GRCh38 \
                 --everything \
-                # --shift_hgvs 0 \
                 --flag_pick \
                 --allele_number \
                 --dir_cache /vep/.vep \
