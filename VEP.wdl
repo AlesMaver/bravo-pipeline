@@ -207,9 +207,11 @@ task AnnotateWithVCF {
     String annotation_fields ="CLNDN,CLNDNINCL,CLNDISDB,CLNDISDBINCL,CLNHGVS,CLNREVSTAT,CLNSIG,CLNSIGCONF,CLNSIGINCL,CLNVC,CLNVCSO,CLNVI,DBVARID,GENEINFO,MC,ORIGIN,RS"
   }
 
+  String output_basename = basename(input_vcf, ".vcf.gz")
+
   command <<<
     set -e
-    bcftools annotate -r ~{chromosome} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o vcf_annotated.vcf.gz --write-index
+    bcftools annotate -r ~{chromosome} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o ~{output_basename}_ClinVar.vcf.gz --write-index
   >>>
 
   runtime {
@@ -220,8 +222,8 @@ task AnnotateWithVCF {
   }
 
   output {
-    File output_vcf = "vcf_annotated.vcf.gz"
-    File output_vcf_index = "vcf_annotated.vcf.gz.csi"
+    File output_vcf = "~{output_basename}_ClinVar.vcf.gz"
+    File output_vcf_index = "~{output_basename}_ClinVar.vcf.gz.csi"
   }
 }
 
