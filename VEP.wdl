@@ -440,7 +440,7 @@ task RunVEP {
         docker: "alesmaver/vep_with_references"
         requested_memory_mb_per_core: 2000
         cpu: cpus
-        runtime_minutes: 59
+        runtime_minutes: 179
     }
 
     output {
