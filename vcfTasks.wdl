@@ -239,7 +239,7 @@ task RemoveReportedVariants {
 
   command {
     set -e
-    wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/region_scatter/removeReportedVariants.py
+    wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/kigm-dev/removeReportedVariants.py
     python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
   }
   runtime {
