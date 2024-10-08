@@ -24,8 +24,9 @@ task ConvertIntervalListToBed {
   # Specify the runtime parameters for the task
   runtime {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
-    #cpu: 1
+    cpu: 4
     memory: "8G"
+    runtime_minutes: 10
   }
 
   # Specify the output declaration to capture the output BED file
@@ -59,8 +60,9 @@ task SplitRegions {
   # Specify the runtime parameters for the task
   runtime {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
-    #cpu: 1
+    cpu: 4
     memory: "8G"
+    runtime_minutes: 10
   }
 
   # Specify the output declaration to capture the output BED file
@@ -95,7 +97,7 @@ task VCFsplitter {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 60
   }
   output {
     File output_vcf = "~{chromosome_filename}.~{vcf_basename}.vcf.gz"
@@ -244,7 +246,7 @@ task RemoveReportedVariants {
     docker: "amancevice/pandas"
     requested_memory_mb_per_core: 2000
     cpu: 8
-    #runtime_minutes: 180
+    runtime_minutes: 60
   }
   output {
     File output_vcf = "~{output_vcf_filename}"
@@ -294,6 +296,35 @@ task concatVcf {
   set -e
     mkdir $PWD/sort_tmp
     bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz
+  >>>
+
+  runtime {
+    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    requested_memory_mb_per_core: 1000
+    cpu: threads
+    #runtime_minutes: 90
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+##############################
+task concatSortVcf {
+    input {
+      Array[File] input_vcfs
+      Array[File] input_vcfs_indices
+      String output_name
+      Int threads
+    }
+  
+  command <<<
+  set -e
+    mkdir $PWD/sort_tmp
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
+    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m 9G
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
