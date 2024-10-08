@@ -384,57 +384,7 @@ task concatCrams {
 ##############################
 ## Misc
 ##############################
-task GenerateTable {
-  input {
-    # Command parameters
-    File input_vcf
-    File input_vcf_index
-    String chromosome
-  }
 
-  String vcf_basename = basename(input_vcf, ".vcf.gz")
-  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
-
-  command {
-    set -e
-    bcftools view -r ~{chromosome} -t ~{chromosome} ~{input_vcf} | \
-    bcftools +fill-tags | \
-    bcftools +split-vep \
-      -f '%CHROM\t%POS\t%REF\t%ALT\t%SYMBOL\t%IMPACT\t%MANE_SELECT\t%CANONICAL\t%EXON\t%HGVSc\t%clinvar_clnsig\t%clinvar_review\t%INFO/AF\t%AC\t%AC_Hom\t%LoF\t%LoF_filter\t%LoF_flags\t%LoF_info\t%gnomADe_NFE_AF\t[%SAMPLE,]\n' \
-      -s primary \
-      -i'(clinvar_clnsig ~ "pathogenic/i") && (clinvar_clnsig !~ "conflicting/i") && GT="alt"' \
-      -d \
-    > ~{chromosome_filename}.~{vcf_basename}.tab
-  }
-  runtime {
-    docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
-    #runtime_minutes: 180
-  }
-  output {
-    File output_tab = "~{chromosome_filename}.~{vcf_basename}.tab"
-  }
-}
-
-##############################
-task ConcatenateTabFiles {
-  input {
-    Array[File] input_files
-  }
-  command {
-    cat $(cat ~{write_lines(input_files)}) > MergedVariantTable.tab
-  }
-    runtime {
-    docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
-    #runtime_minutes: 180
-  }
-  output {
-    File output_tab = "MergedVariantTable.tab"
-  }
-}
 
 ##############################
 task PrintStringToStdout {
