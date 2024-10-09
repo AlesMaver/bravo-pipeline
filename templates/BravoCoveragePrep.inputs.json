@@ -1,0 +1,6 @@
+{
+  "BravoCoveragePreparation.inputCramFiles": ["/path_to_crams/SAMPLE1.cram", "/path_to_crams/SAMPLE2.cram", "/path_to_crams/SAMPLE3.cram"],
+  "BravoCoveragePreparation.inputCraiFiles": ["/path_to_crams/SAMPLE1.cram.crai", "/path_to_crams/SAMPLE2.cram.crai", "/path_to_crams/SAMPLE3.cram.crai"],
+  "BravoCoveragePreparation.referenceFasta": "Homo_sapiens_assembly38.fasta",
+  "BravoCoveragePreparation.referenceFastaCache": "Homo_sapiens_assembly38.ref_cache.tar.gz"
+}
