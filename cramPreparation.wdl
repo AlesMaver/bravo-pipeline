@@ -65,8 +65,9 @@ task extractId {
     }
     runtime {
         docker: "alesmaver/bravo-pipeline-sgp:latest"
-        #cpu: "1"
+        cpu: "1"
         bootDiskSizeGb: "50"
+        runtime_minutes: 10
     }
 }
 
@@ -121,6 +122,7 @@ task prepareSequences {
         #cpu: "4"
         cpu: threads
         bootDiskSizeGb: "50"
-        continueOnReturnCode: true
+        #continueOnReturnCode: true
+        #runtime_minutes: >8h
     }
 }

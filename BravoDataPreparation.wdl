@@ -118,7 +118,7 @@ workflow BravoDataPreparation {
   } # Close per chromosome scatter
 
   # Concatenate VCFs from prepare percentiles task
-  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants{
+  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants {
     input:
       input_vcfs = VCFindex.output_vcf,
       input_vcfs_indices = VCFindex.output_vcf_index,
@@ -126,7 +126,7 @@ workflow BravoDataPreparation {
       threads = threads
   }
 
-  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants_filtered{
+  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants_filtered {
     input:
       input_vcfs = VCFfilter.output_vcf,
       input_vcfs_indices = VCFfilter.output_vcf_index,

@@ -159,9 +159,9 @@ task VCFfilter {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 1000
+    requested_memory_mb_per_core: 2000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 60
   }
   output {
     File output_vcf = "~{vcf_basename}_flt.vcf.gz"
@@ -272,9 +272,9 @@ task VCFindex {
   }
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 1000
+    requested_memory_mb_per_core: 2000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 60
   }
   output {
     File output_vcf = "~{chromosome_filename}.indexed.vcf.gz"
@@ -303,7 +303,7 @@ task concatVcf {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 1000
     cpu: threads
-    #runtime_minutes: 90
+    #runtime_minutes: >11h
   }
   output {
     File output_vcf = "~{output_name}.vcf.gz"
