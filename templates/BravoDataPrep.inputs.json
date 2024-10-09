@@ -1,0 +1,32 @@
+{
+  "BravoDataPreparation.input_vcf": "merged.vcf.gz",
+  "BravoDataPreparation.input_vcf_index": "merged.vcf.gz.tbi",
+  "BravoDataPreparation.interval_list": "wgs_calling_regions.hg38.interval_list",
+  "BravoDataPreparation.scatter_region_size": 1000000,
+  "BravoDataPreparation.samplesFile": "cohort.samples.txt",
+  "BravoDataPreparation.sampleLocationPath": "/absPathToCommonCramDirectory",
+  "BravoDataPreparation.generate_crams": "true",
+  "BravoDataPreparation.referenceFasta": "Homo_sapiens_assembly38.fasta",
+  "BravoDataPreparation.cadScores": "/cadd_scores/whole_genome_SNVs.tsv.gz",
+  "BravoDataPreparation.cadScoresIndex": "/cadd_scores/whole_genome_SNVs.tsv.gz.tbi",
+  "BravoDataPreparation.infoFields": [
+     "AVGDP",
+     "VQSLOD",
+     "SOR",
+     "AS_InbreedingCoeff",
+     "AS_QD",
+     "ExcessHet",
+     "FS",
+     "InbreedingCoeff",
+     "MLEAF",
+     "MQ",
+     "QD",
+     "RAW_MQ",
+     "BaseQRankSum",
+     "MQRankSum",
+     "ClippingRankSum"
+      ],
+  "BravoDataPreparation.threads": 40,
+  "BravoDataPreparation.numberPercentiles": 10,
+  "BravoDataPreparation.reported_variants": "PortalReportedVariants_latest.csv"
+}

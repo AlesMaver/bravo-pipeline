@@ -123,6 +123,6 @@ task prepareSequences {
         cpu: threads
         bootDiskSizeGb: "50"
         #continueOnReturnCode: true
-        #runtime_minutes: >8h
+        runtime_minutes: 720
     }
 }

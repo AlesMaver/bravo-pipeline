@@ -1,0 +1,10 @@
+{
+  "vcfFilterNorm.input_vcf": "input.vcf.gz",
+  "vcfFilterNorm.input_vcf_index": "input.vcf.gz.tbi",
+  "vcfFilterNorm.interval_list": "wgs_calling_regions.hg38.interval_list",
+  "vcfFilterNorm.scatter_region_size": 1000000,
+  "vcfFilterNorm.samplesFile": "cohort.samples.txt",
+  "vcfFilterNorm.referenceFasta": "Homo_sapiens_assembly38.fasta",
+  "vcfFilterNorm.threads": 5,
+  "vcfFilterNorm.output_vcf_basename": "output_fltNorm"
+}
