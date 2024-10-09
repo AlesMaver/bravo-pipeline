@@ -1,0 +1,18 @@
+{
+  "final_workflow_outputs_dir": "/ceph/hpc/data/kimg-users/outputs-SGP/ADMIXTURE",
+  "use_relative_output_paths": true,
+  "final_workflow_log_dir": "/ceph/hpc/data/kimg-users/log-SGP/wf",
+  "final_call_logs_dir": "/ceph/hpc/data/kimg-users/log-SGP/call",
+  "default_runtime_attributes": {
+    "cpu": 1,
+    "requested_memory_mb_per_core": 100,
+    "runtime_minutes": 2880,
+    "docker_user": "$EUID",
+    "docker_mnt": "/ceph/hpc/data/kimg-users",
+    "maxRetries": 0,
+    "memory_retry_multiplier": 1.33,
+    "queue": "cpu"
+  },
+  "hogGroup": "AdmixtureCV",
+  "read_from_cache": false
+}
