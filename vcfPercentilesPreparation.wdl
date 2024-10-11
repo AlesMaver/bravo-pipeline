@@ -131,7 +131,7 @@ task computeAlleleCountsAndHistograms {
         # pip3 install pysam
 
         docker: "alesmaver/bravo-pipeline-sgp:latest"
-        runtime_minutes: 10
+        runtime_minutes: 60
     }
 }
 
@@ -155,7 +155,7 @@ task AddOriginalVCFAnnotations {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
     requested_memory_mb_per_core: 2000
     cpu: threads
-    runtime_minutes: 10
+    runtime_minutes: 60
   }
   output {
     File output_vcf = "output.vcf.gz"
@@ -221,7 +221,7 @@ task variantEffectPredictor {
         docker: "alesmaver/vep:testing"
         cpu: forks # "1" # changed in order to increase memory, see https://github.com/Ensembl/ensembl-vep/issues/150
         bootDiskSizeGb: "150"
-        runtime_minutes: 10
+        runtime_minutes: 60
     }
 
 }
@@ -243,7 +243,7 @@ task addCaddScores {
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
-        #cpu: "1"
+        cpu: "2"
         bootDiskSizeGb: "150"
         runtime_minutes: 10
     }
@@ -278,6 +278,7 @@ task computePercentiles {
         docker: "statgen/bravo-pipeline:latest"
         cpu: threads
         bootDiskSizeGb: "150"
+        runtime_minutes: 120
     }
 }
 
@@ -305,8 +306,9 @@ task addPercentiles {
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
-        #cpu: "1"
+        cpu: "2"
         bootDiskSizeGb: "150"
+        #runtime_minutes: >3h
     }
 
 }
