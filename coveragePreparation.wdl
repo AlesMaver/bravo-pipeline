@@ -118,7 +118,7 @@ task aggrBasePair {
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"
-        cpu: "8"
+        cpu: "4"
         bootDiskSizeGb: "50"
         #runtime_minutes: >2day
     }
