@@ -42,6 +42,9 @@ workflow BravoDataPreparation {
 
     # Remove reported variants
     File reported_variants
+
+    # Filter
+    Float F_MISSING_upper_bounds = 1
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -84,7 +87,8 @@ workflow BravoDataPreparation {
   		input:
   			input_vcf = VCFindex.output_vcf,
         input_vcf_index = VCFindex.output_vcf_index,
-        threads = threads
+        threads = threads,
+        F_MISSING_upper_bounds = F_MISSING_upper_bounds
   	}
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {

@@ -28,5 +28,6 @@
       ],
   "BravoDataPreparation.threads": 40,
   "BravoDataPreparation.numberPercentiles": 10,
-  "BravoDataPreparation.reported_variants": "PortalReportedVariants_latest.csv"
+  "BravoDataPreparation.reported_variants": "PortalReportedVariants_latest.csv",
+  "BravoDataPreparation.F_MISSING_upper_bounds": 1
 }

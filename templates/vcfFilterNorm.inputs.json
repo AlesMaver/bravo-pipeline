@@ -6,5 +6,6 @@
   "vcfFilterNorm.samplesFile": "cohort.samples.txt",
   "vcfFilterNorm.referenceFasta": "Homo_sapiens_assembly38.fasta",
   "vcfFilterNorm.threads": 5,
-  "vcfFilterNorm.output_vcf_basename": "output_fltNorm"
+  "vcfFilterNorm.F_MISSING_upper_bounds": 0.1,
+  "vcfFilterNorm.output_vcf_basename": "output_nrmFlt0.1"
 }

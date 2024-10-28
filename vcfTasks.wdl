@@ -138,24 +138,36 @@ task VCFsplit {
 }
 
 ##############################
-## bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | annotate -x FORMAT/PGT,FORMAT/PID | --types snps,indels | -i 'F_MISSING<1' |
-##          +fill-tags | filter -e 'INFO/AC=0' | -i "QUAL>100" 
+## bcftools 
+##  +setGT -- -t q -n . -i 'FORMAT/GQ<20'     # phred-scaled probability that the call is incorrect
+##  annotate -x FORMAT/PGT,FORMAT/PID         # physical phasing haplotype information + physical phasing ID information
+##  view --types snps,indels
+##  +fill-tags
+##  view -i 'F_MISSING<1'                     # Fraction of missing genotypes: include sites with with at least one genotypeany, i.e. not all missing
+##  filter -e 'INFO/AC=0'                     # allele count in genotypes, for each ALT (alternative) allele, in the same order as listed: exclude sites with no alelles
+##  view -i "QUAL>100"                        # phred-scaled probability that the site has no variant
 task VCFfilter {
   input {
     # Command parameters
     File input_vcf
     File input_vcf_index
     Int threads
+    Float F_MISSING_upper_bounds = 1
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz")
 
   command {
     set -e
-    #zcat ~{input_vcf} | bcftools view -Oz -o input.vcf.gz
-    #bcftools index input.vcf.gz
-    bcftools view ~{input_vcf} | bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | bcftools annotate -x FORMAT/PGT,FORMAT/PID | bcftools view --types snps,indels | bcftools +fill-tags | bcftools view -i 'F_MISSING<1' | bcftools filter -e 'INFO/AC=0' | bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt.vcf.gz
-    bcftools index -t ~{vcf_basename}_flt.vcf.gz
+    bcftools view ~{input_vcf} | \
+      bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | \
+      bcftools annotate -x FORMAT/PGT,FORMAT/PID | \
+      bcftools view --types snps,indels | \
+      bcftools +fill-tags | \
+      bcftools view -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
+      bcftools filter -e 'INFO/AC=0' | \
+      bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz
+    bcftools index -t ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -164,10 +176,11 @@ task VCFfilter {
     runtime_minutes: 60
   }
   output {
-    File output_vcf = "~{vcf_basename}_flt.vcf.gz"
-    File output_vcf_index = "~{vcf_basename}_flt.vcf.gz.tbi"
+    File output_vcf = "~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz"
+    File output_vcf_index = "~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz.tbi"
   }
 }
+
 
 ##############################
 ## bcftools norm -m-any -f ~{referenceFasta}

@@ -19,7 +19,12 @@ workflow vcfFilterNorm {
     # Reference FASTA file - hg37/38
     File referenceFasta
     Int threads = 5
-    String output_vcf_basename = basename(input_vcf, ".vcf.gz") + "_nrmFlt"
+
+    # Filter
+    Float F_MISSING_upper_bounds = 1
+
+    # Output
+    String output_vcf_basename = basename(input_vcf, ".vcf.gz")
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -57,7 +62,8 @@ workflow vcfFilterNorm {
       input:
         input_vcf = VCFnorm.output_vcf,
         input_vcf_index = VCFnorm.output_vcf_index,
-        threads = threads
+        threads = threads,
+        F_MISSING_upper_bounds = F_MISSING_upper_bounds
     }
 
   } # Close per chromosome scatter
@@ -66,7 +72,7 @@ workflow vcfFilterNorm {
     input:
       input_vcfs = VCFfilter.output_vcf,
       input_vcfs_indices = VCFfilter.output_vcf_index,
-      output_name = output_vcf_basename,
+      output_name = output_vcf_basename + "_nrmFlt" + F_MISSING_upper_bounds,
       threads = threads
   }
 
