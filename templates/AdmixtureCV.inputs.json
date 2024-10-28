@@ -1,0 +1,8 @@
+{
+  "AdmixtureCV.input_bed": "/path/to/plink2.bed",
+  "AdmixtureCV.input_bim": "/path/to/plink2.bim",
+  "AdmixtureCV.input_fam": "/path/to/plink2.fam",
+  "AdmixtureCV.num_populations": [15,14,13,12,11,10,9,8,7,6,5,4,3,2],
+  "AdmixtureCV.threads": 254,
+  "AdmixtureCV.cv_fold": 5
+}
