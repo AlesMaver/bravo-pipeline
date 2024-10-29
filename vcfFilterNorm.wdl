@@ -72,7 +72,7 @@ workflow vcfFilterNorm {
     input:
       input_vcfs = VCFfilter.output_vcf,
       input_vcfs_indices = VCFfilter.output_vcf_index,
-      output_name = output_vcf_basename + "_nrmFlt" + F_MISSING_upper_bounds,
+      output_name = output_vcf_basename,
       threads = threads
   }
 
