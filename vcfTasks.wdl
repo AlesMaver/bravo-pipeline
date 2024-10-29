@@ -113,17 +113,17 @@ task VCFsplit {
     File input_vcf
     File input_vcf_index
     File? samplesFile
-    String chromosome
+    String region
     Int threads
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz")
-  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
+  String region_filename = sub(sub(region, "-", "_"), ":", "__")
 
   command {
     set -e
-    bcftools view -r ~{chromosome} -t ~{chromosome} ~{"-S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{region} -t ~{region} ~{"-S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
+    bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -132,8 +132,8 @@ task VCFsplit {
     #runtime_minutes: 180
   }
   output {
-    File output_vcf = "~{chromosome_filename}.~{vcf_basename}.vcf.gz"
-    File output_vcf_index = "~{chromosome_filename}.~{vcf_basename}.vcf.gz.tbi"
+    File output_vcf = "~{region_filename}.~{vcf_basename}.vcf.gz"
+    File output_vcf_index = "~{region_filename}.~{vcf_basename}.vcf.gz.tbi"
   }
 }
 
@@ -269,7 +269,7 @@ task RemoveReportedVariants {
 ##############################
 ## Called after RemoveReportedVariants
 ## Applies bcftools +fill-tags to fix AN and AC after removal of reported variants
-task VCFindex {
+task VCFfillTags {
   input {
     File input_vcf
     String chromosome = "chromosome"
