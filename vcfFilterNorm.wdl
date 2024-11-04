@@ -41,7 +41,7 @@ workflow vcfFilterNorm {
 
   scatter (chromosome in SplitRegions.scatter_regions ) {
 
-    call vcfTasks.VCFsplit {
+    call vcfTasks.VCFsplitSubset {
       input:
         input_vcf = input_vcf,
         input_vcf_index = input_vcf_index,
@@ -52,8 +52,8 @@ workflow vcfFilterNorm {
 
     call vcfTasks.VCFnorm {
       input:
-        input_vcf = VCFsplit.output_vcf,
-        input_vcf_index = VCFsplit.output_vcf_index,
+        input_vcf = VCFsplitSubset.output_vcf,
+        input_vcf_index = VCFsplitSubset.output_vcf_index,
         referenceFasta = referenceFasta,
         threads = threads
     }

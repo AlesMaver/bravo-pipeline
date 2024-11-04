@@ -1,5 +1,12 @@
-version 1.0
 ## Copyright CMG@KIGM, Peter Juvan
+##
+## Uses bcftools with multiple VCF files to:
+## - subset samples (skipping non-existing), 
+## - normalize VCF (left-align and normalize indels, check if REF alleles match the reference, split multiallelic sites into biallelic -m-any),
+## - filter/annotate (+setGT ./. GQ<20, annotate PGT & PID, --types snps,indels, +fill-tags, include F_MISSING<..., exclude AC=0, include QUAL>100)
+## - merge resulting VCFs
+
+version 1.0
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
@@ -48,7 +55,7 @@ workflow vcfNormFilterMerge {
 
     scatter (input_vcf in input_vcfs) {
 
-      call vcfTasks.VCFsplit {
+      call vcfTasks.VCFsplitSubset {
         input:
           input_vcf = input_vcfs.vcf,
           input_vcf_index = input_vcfs.vcf_index,
@@ -59,8 +66,8 @@ workflow vcfNormFilterMerge {
 
       call vcfTasks.VCFnorm {
         input:
-          input_vcf = VCFsplit.output_vcf,
-          input_vcf_index = VCFsplit.output_vcf_index,
+          input_vcf = VCFsplitSubset.output_vcf,
+          input_vcf_index = VCFsplitSubset.output_vcf_index,
           referenceFasta = referenceFasta,
           threads = threads
       }

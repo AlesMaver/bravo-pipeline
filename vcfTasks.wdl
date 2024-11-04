@@ -73,7 +73,7 @@ task SplitRegions {
 }
 
 ##############################
-## bcftools -r -t -S | norm -m-any -f ~{referenceFasta}
+## bcftools view -r -t -S | norm -m-any -f ~{referenceFasta}
 task VCFsplitter {
   input {
     # Command parameters
@@ -106,8 +106,8 @@ task VCFsplitter {
 }
 
 ##############################
-## bcftools -r -t -S
-task VCFsplit {
+## bcftools view -r -t -S --force-samples
+task VCFsplitSubset {
   input {
     # Command parameters
     File input_vcf
@@ -122,7 +122,7 @@ task VCFsplit {
 
   command {
     set -e
-    bcftools view -r ~{region} -t ~{region} ~{"-S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
+    bcftools view -r ~{region} -t ~{region} ~{"--force-samples -S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz
   }
   runtime {
