@@ -122,6 +122,7 @@ task VCFsplitSubset {
 
   command {
     set -e
+    bcftools index -t ~{input_vcf}
     bcftools view -r ~{region} -t ~{region} ~{"--force-samples -S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
     bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz
   }
