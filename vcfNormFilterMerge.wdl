@@ -36,7 +36,7 @@ workflow vcfNormFilterMerge {
     Float F_MISSING_upper_bounds = 1
 
     # Output
-    String output_vcf_basename = basename(input_vcf, ".vcf.gz")
+    String output_vcf_basename
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -57,8 +57,7 @@ workflow vcfNormFilterMerge {
 
       call vcfTasks.VCFsplitSubset {
         input:
-          input_vcf = input_vcfs.vcf,
-          input_vcf_index = input_vcfs.vcf_index,
+          input_vcf = input_vcf,
           samplesFile = samplesFile,
           region = region,
           threads = threads
@@ -85,7 +84,7 @@ workflow vcfNormFilterMerge {
     call vcfTasks.VCFmerge {
       input:
         input_vcfs = VCFfilter.output_vcf,
-        output_name = sub(sub(region, "-", "_"), ":", "__") + "." + output_vcf_basename
+        output_name = sub(sub(region, "-", "_"), ":", "__") + "." + output_vcf_basename,
         threads = threads
     }
 
