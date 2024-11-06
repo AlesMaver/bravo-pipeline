@@ -223,11 +223,11 @@ task VCFmerge {
     Int threads
   }
 
-  command {
+  command <<<
     set -e
-    bcftools merge --threads ~{threads} -Oz ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
+    bcftools merge --threads ~{threads} -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
     bcftools index -t ~{output_name}.vcf.gz
-  }
+  >>>
 
   runtime {
     docker: "dceoy/bcftools"
