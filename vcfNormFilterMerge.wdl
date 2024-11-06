@@ -33,7 +33,7 @@ workflow vcfNormFilterMerge {
 
     # Reference FASTA file - hg37/38
     File referenceFasta
-    Int threads = 5
+    Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not requested_memory_mb_per_core
 
     # Options
     Float F_MISSING_upper_bounds = 1
