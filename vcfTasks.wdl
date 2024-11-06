@@ -234,7 +234,7 @@ task VCFmerge {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 10
   }
   output {
     File output_vcf = "~{output_name}.vcf.gz"
