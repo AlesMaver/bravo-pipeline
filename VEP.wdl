@@ -4,6 +4,7 @@ version 1.0
 #import "https://raw.githubusercontent.com/AlesMaver/CMGpipeline/master/common/annotation/CreateGenesBed.wdl" as CreateGenesBed
 # import "http://wdl_server/CMGpipeline/common/annotation/CreateGenesBed.wdl" as CreateGenesBed
 
+import "./vcfTasks.wdl" as vcfTasks
 
 # WORKFLOW DEFINITION 
 workflow VEP_workflow {
@@ -47,12 +48,12 @@ workflow VEP_workflow {
 #       }
 #   }
 
-  call ConvertIntervalListToBed {
+  call vcfTasks.ConvertIntervalListToBed {
     input:
       interval_list = interval_list
   }
 
-  call SplitRegions {
+  call vcfTasks.SplitRegions {
     input:
       input_bed = ConvertIntervalListToBed.converted_bed,
       thinning_parameter = thinning_parameter,
@@ -97,77 +98,6 @@ workflow VEP_workflow {
 } # Close workflow
 
 
-
-# Tasks
-##############################
-task ConvertIntervalListToBed {
-  input {
-    File interval_list
-  }
-
-  # Command section where the conversion is performed using Picard
-  command <<<
-    # Convert an interval list to BED 
-    java  -Xmx14g -jar /usr/picard/picard.jar IntervalListToBed \
-      I=~{interval_list} \
-      O=interval.bed
-
-    # Format the scatter regions
-    # awk '{print $1":"$2"-"$3}' interval.bed |awk 'NR % 50 == 0' > regions.txt # FOR TESTING - This will subset every 50th row in the regions
-    awk '{print $1":"$2"-"$3}' interval.bed > regions.txt
-
-    #output_regions=$(cat output_regions.txt)
-  >>>
-
-  # Specify the runtime parameters for the task
-  runtime {
-    docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
-    runtime_minutes: 10
-  }
-
-  # Specify the output declaration to capture the output BED file
-  output {
-    File converted_bed = "interval.bed"
-    File converted_regions = "regions.txt"
-    Array[String] scatter_regions = read_lines("regions.txt")
-  }
-}
-
-##############################
-task SplitRegions {
-  input {
-    File input_bed
-    Int? thinning_parameter
-    Int scatter_region_size
-  }
-
-  # Command section where the conversion is performed using Picard
-  command <<<
-    # Convert an interval list to BED 
-    window=~{scatter_region_size}
-    step=$(($window + 1))
-    #step=$window
-
-    bedtools makewindows -b ~{input_bed} -w $window -s $step |awk '{print $1":"$2"-"$3}' |awk 'NR % ~{default="1" thinning_parameter} == 0' > regions.txt # FOR TESTING - This will subset every n-th row in the regions
-    # bedtools makewindows -b ~{input_bed} -w 3000000 |awk '{print $1":"$2"-"$3}' > regions.txt
-  >>>
-
-  # Specify the runtime parameters for the task
-  runtime {
-    docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
-    cpu: 1
-    memory: "8G"
-    runtime_minutes: 10
-  }
-
-  # Specify the output declaration to capture the output BED file
-  output {
-    File converted_regions = "regions.txt"
-    Array[String] scatter_regions = read_lines("regions.txt")
-  }
-}
 
 ##############################
 task GetClinVarVCF {
@@ -370,6 +300,12 @@ task ConcatenateTabFiles {
 }
 
 ##############################
+## bcftools
+## -G   # remove individual genotype information
+## TODO:
+##  - move -S  ~{samples_file} before norm
+##  - add --force-samples
+##  - add sort: bcftools norm can affect the order of variants in a VCF file; thus we need to sort
 task VCFprocessing {
   input {
     # Command parameters
@@ -437,7 +373,7 @@ task RunVEP {
     >>>
 
     runtime {
-        docker: "alesmaver/vep_with_references"
+        docker: "alesmaver/vep"
         requested_memory_mb_per_core: 2000
         cpu: cpus
         runtime_minutes: 179

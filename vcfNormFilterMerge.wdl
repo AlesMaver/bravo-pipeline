@@ -10,6 +10,7 @@ version 1.0
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
+import "./VEP.wdl" as VEP
 
 #struct VcfAndIndex {
 #  File vcf
@@ -84,13 +85,14 @@ workflow vcfNormFilterMerge {
     call vcfTasks.VCFmerge {
       input:
         input_vcfs = VCFfilter.output_vcf,
+        input_vcfs_indices = VCFfilter.output_vcf_index,
         output_name = sub(sub(region, "-", "_"), ":", "__") + "." + output_vcf_basename,
         threads = threads
     }
 
   } # Close per region scatter
 
-  call vcfTasks.concatVcf {
+  call vcfTasks.concatSortVcf {
     input:
       input_vcfs = VCFmerge.output_vcf,
       input_vcfs_indices = VCFmerge.output_vcf_index,
@@ -99,8 +101,8 @@ workflow vcfNormFilterMerge {
   }
 
   output {
-    File output_vcf = concatVcf.output_vcf
-    File output_vcf_index = concatVcf.output_vcf_index
+    File output_vcf = concatSortVcf.output_vcf
+    File output_vcf_index = concatSortVcf.output_vcf_index
   }
 
 } # Close workflow

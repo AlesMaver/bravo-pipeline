@@ -130,7 +130,7 @@ task VCFsplitSubset {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 360
   }
   output {
     File output_vcf = "~{region_filename}.~{vcf_basename}.vcf.gz"
@@ -174,7 +174,7 @@ task VCFfilter {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
-    runtime_minutes: 60
+    runtime_minutes: 120
   }
   output {
     File output_vcf = "~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz"
@@ -205,7 +205,7 @@ task VCFnorm {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
-    #runtime_minutes: 180
+    runtime_minutes: 10
   }
   output {
     File output_vcf = "~{vcf_basename}_norm.vcf.gz"
@@ -219,6 +219,7 @@ task VCFmerge {
   input {
     # Command parameters
     Array [File] input_vcfs
+    Array [File] input_vcfs_indices
     String output_name
     Int threads
   }
@@ -326,6 +327,7 @@ task concatVcf {
 }
 
 ##############################
+## bcftools norm can affect the order of variants in a VCF file; thus we need to sort
 task concatSortVcf {
     input {
       Array[File] input_vcfs
