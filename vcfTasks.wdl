@@ -308,10 +308,9 @@ task concatVcf {
     }
   
   command <<<
-  set -e
-    mkdir $PWD/sort_tmp
-    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
-    bcftools index -t ~{output_name}.vcf.gz
+    set -e
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
+    bcftools index -t ~{output_name}_unsorted.vcf.gz
   >>>
 
   runtime {
@@ -321,32 +320,32 @@ task concatVcf {
     #runtime_minutes: >11h
   }
   output {
-    File output_vcf = "~{output_name}.vcf.gz"
-    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+    File output_vcf = "~{output_name}_unsorted.vcf.gz"
+    File output_vcf_index = "~{output_name}_unsorted.vcf.gz.tbi"
   }
 }
 
 ##############################
 ## bcftools norm can affect the order of variants in a VCF file; thus we need to sort
-task concatSortVcf {
+## mem is scaled for largemem partition @ Vega (8G per core)
+task sortVcf {
     input {
-      Array[File] input_vcfs
-      Array[File] input_vcfs_indices
+      File input_vcf
+      File input_vcf_index
       String output_name
       Int threads
     }
   
   command <<<
-  set -e
+    set -e
     mkdir $PWD/sort_tmp
-    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools sort ~{output_name}_unsorted.vcf.gz -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{2*threads-1}G"
+    bcftools sort --threads ~{threads} ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "$((7.5*threads))G"
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
   runtime {
     docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
-    requested_memory_mb_per_core: 2000
+    requested_memory_mb_per_core: 8000
     cpu: threads
     #runtime_minutes: 90
   }
