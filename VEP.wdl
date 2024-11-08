@@ -380,7 +380,7 @@ task RunVEP {
     >>>
 
     runtime {
-        docker: "alesmaver/vep:latest_testing"
+        docker: "peterjuv/vep_docker:latest"
         requested_memory_mb_per_core: 2000
         cpu: cpus
         runtime_minutes: 179
