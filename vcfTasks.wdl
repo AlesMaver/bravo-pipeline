@@ -341,7 +341,7 @@ task sortVcf {
   command <<<
     set -e
     mkdir $PWD/sort_tmp
-    bcftools sort --threads ~{threads} ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
+    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
