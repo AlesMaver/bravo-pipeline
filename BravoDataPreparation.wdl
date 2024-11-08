@@ -42,6 +42,9 @@ workflow BravoDataPreparation {
 
     # Remove reported variants
     File reported_variants
+
+    # Filter
+    Float F_MISSING_upper_bounds = 1
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -73,7 +76,7 @@ workflow BravoDataPreparation {
         reported_variants = reported_variants
     }
 
-    call vcfTasks.VCFindex {
+    call vcfTasks.VCFfillTags {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
         chromosome = chromosome,
@@ -82,9 +85,10 @@ workflow BravoDataPreparation {
 
     call vcfTasks.VCFfilter {
   		input:
-  			input_vcf = VCFindex.output_vcf,
-        input_vcf_index = VCFindex.output_vcf_index,
-        threads = threads
+  			input_vcf = VCFfillTags.output_vcf,
+        input_vcf_index = VCFfillTags.output_vcf_index,
+        threads = threads,
+        F_MISSING_upper_bounds = F_MISSING_upper_bounds
   	}
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
@@ -120,8 +124,8 @@ workflow BravoDataPreparation {
   # Concatenate VCFs from prepare percentiles task
   call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants {
     input:
-      input_vcfs = VCFindex.output_vcf,
-      input_vcfs_indices = VCFindex.output_vcf_index,
+      input_vcfs = VCFfillTags.output_vcf,
+      input_vcfs_indices = VCFfillTags.output_vcf_index,
       output_name = "output_RemoveReportedVariants",
       threads = threads
   }
