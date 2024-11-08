@@ -372,7 +372,7 @@ task RunVEP {
         --merged \
         --nearest symbol \
         --no_stats \
-        --plugin dbNSFP,/opt/vep/.vep/dbNSFP/dbNSFP_custombuild.gz,$DBNSFP_ANNFIELDS_VEP \
+        --plugin dbNSFP,/opt/vep/.vep/dbNSFP/dbNSFPv4.9a_custombuild.gz,$DBNSFP_ANNFIELDS_VEP \
         --plugin LoF,loftee_path:/opt/vep/.vep/Plugins/loftee/,human_ancestor_fa:/opt/vep/.vep/Plugins/loftee/data/human_ancestor.fa.gz,conservation_file:/opt/vep/.vep/Plugins/loftee/data/loftee.sql.gz,gerp_bigwig:/opt/vep/.vep/Plugins/loftee/data/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
         --plugin AlphaMissense,file=/opt/vep/.vep/Plugins/AlphaMissense/AlphaMissense_hg38.tsv.gz
 
