@@ -215,6 +215,7 @@ task VCFnorm {
 
 ##############################
 ## bcftools merge -Oz vcf1 vcf2 ... > vcf_merged
+## --force-samples: if the merged files contain duplicate samples names, duplicate sample names will be resolved by prepending the index of the file as it appeared on the command line to the conflicting sample name.
 task VCFmerge {
   input {
     # Command parameters
@@ -226,7 +227,7 @@ task VCFmerge {
 
   command <<<
     set -e
-    bcftools merge --threads ~{threads} -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
+    bcftools merge --threads ~{threads} --force-samples -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
     bcftools index -t ~{output_name}.vcf.gz
   >>>
 
