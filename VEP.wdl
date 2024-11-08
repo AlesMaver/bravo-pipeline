@@ -341,6 +341,7 @@ task VCFprocessing {
   }
 }
 
+##############################
 task RunVEP {
     input {
         File input_vcf
@@ -351,29 +352,35 @@ task RunVEP {
     String output_basename = basename(input_vcf, ".vcf.gz")
 
     command <<<
-        PERL5LIB=:\$PERL5LIB:/vep/loftee
+      PERL5LIB=:\$PERL5LIB:/opt/vep/.vep/Plugins/loftee
 
-        DBNSFP_ANNFIELDS_DEFAULT_VEP="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
-        DBNSFP_ANNFIELDS_PRED_VEP="MetaRNN_score,MetaRNN_rankscore,MetaRNN_pred,REVEL_score,REVEL_rankscore,Aloft_prob_Tolerant,Aloft_prob_Recessive,Aloft_prob_Dominant,Aloft_pred,Aloft_Confidence"
-        DBNSFP_ANNFIELDS_GNOMAD_VEP="gnomAD_exomes_AC,gnomAD_exomes_nhomalt,gnomAD_exomes_POPMAX_AC,gnomAD_exomes_POPMAX_AF,gnomAD_exomes_POPMAX_nhomalt,gnomAD_exomes_NFE_AC,gnomAD_exomes_NFE_nhomalt,gnomAD_genomes_AC,gnomAD_genomes_AF,gnomAD_genomes_nhomalt,gnomAD_genomes_POPMAX_AC,gnomAD_genomes_POPMAX_AF,gnomAD_genomes_POPMAX_nhomalt,gnomAD_genomes_NFE_AC,gnomAD_genomes_NFE_AF,gnomAD_genomes_NFE_nhomalt"
-        DBNSFP_ANNFIELDS_CLINVAR_VEP="clinvar_id,clinvar_clnsig,clinvar_trait,clinvar_review,clinvar_hgvs,clinvar_var_source,clinvar_MedGen_id,clinvar_OMIM_id,clinvar_Orphanet_id"
-        DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP,$DBNSFP_ANNFIELDS_CLINVAR_VEP"
+      DBNSFP_ANNFIELDS_DEFAULT_VEP="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
+      DBNSFP_ANNFIELDS_PRED_VEP="MetaRNN_score,MetaRNN_rankscore,MetaRNN_pred,REVEL_score,REVEL_rankscore,Aloft_prob_Tolerant,Aloft_prob_Recessive,Aloft_prob_Dominant,Aloft_pred,Aloft_Confidence"
+      DBNSFP_ANNFIELDS_GNOMAD_VEP="gnomAD_exomes_AC,gnomAD_exomes_nhomalt,gnomAD_exomes_POPMAX_AC,gnomAD_exomes_POPMAX_AF,gnomAD_exomes_POPMAX_nhomalt,gnomAD_exomes_NFE_AC,gnomAD_exomes_NFE_nhomalt,gnomAD_genomes_AC,gnomAD_genomes_AF,gnomAD_genomes_nhomalt,gnomAD_genomes_POPMAX_AC,gnomAD_genomes_POPMAX_AF,gnomAD_genomes_POPMAX_nhomalt,gnomAD_genomes_NFE_AC,gnomAD_genomes_NFE_AF,gnomAD_genomes_NFE_nhomalt"
+      #DBNSFP_ANNFIELDS_CLINVAR_VEP="clinvar_id,clinvar_clnsig,clinvar_trait,clinvar_review,clinvar_hgvs,clinvar_var_source,clinvar_MedGen_id,clinvar_OMIM_id,clinvar_Orphanet_id"
+      #DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP,$DBNSFP_ANNFIELDS_CLINVAR_VEP"
+      DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP"
 
-        vep -i ~{input_vcf} \
-                -o ~{output_basename}_vep.vcf.gz \
-                --fork "~{cpus}" --cache --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-                --assembly GRCh38 \
-                --everything \
-                --flag_pick \
-                --allele_number \
-                --dir_cache /vep/.vep \
-                --merged \
-                --plugin dbNSFP,/vep/dbNSFP/dbNSFP4.4a_grch38.gz,$DBNSFP_ANNFIELDS_VEP \
-                --plugin LoF,loftee_path:/vep/loftee/,human_ancestor_fa:/vep/loftee_data/human_ancestor.fa.gz,conservation_file:/vep/loftee_data/phylocsf_gerp.sql,gerp_bigwig:/vep/loftee_data/gerp_conservation_scores.homo_sapiens.GRCh38.bw
+      vep -i ~{input_vcf} \
+        -o ~{output_basename}_vep.vcf.gz \
+        --fork "~{cpus}" --cache --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
+        --assembly GRCh38 \
+        --everything \
+        --flag_pick \
+        --allele_number \
+        --dir_cache /opt/vep/.vep \
+        --merged \
+        --nearest symbol \
+        --no_stats \
+        --plugin dbNSFP,/opt/vep/.vep/dbNSFP/dbNSFP_custombuild.gz,$DBNSFP_ANNFIELDS_VEP \
+        --plugin LoF,loftee_path:/opt/vep/.vep/Plugins/loftee/,human_ancestor_fa:/opt/vep/.vep/Plugins/loftee/data/human_ancestor.fa.gz,conservation_file:/opt/vep/.vep/Plugins/loftee/data/loftee.sql.gz,gerp_bigwig:/opt/vep/.vep/Plugins/loftee/data/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
+        --plugin AlphaMissense,file=/opt/vep/.vep/Plugins/AlphaMissense/AlphaMissense_hg38.tsv.gz
+
+      tabix -p vcf ~{output_basename}_vep.vcf.gz
     >>>
 
     runtime {
-        docker: "alesmaver/vep"
+        docker: "peterjuv/vep_docker:latest"
         requested_memory_mb_per_core: 2000
         cpu: cpus
         runtime_minutes: 179
@@ -381,6 +388,6 @@ task RunVEP {
 
     output {
         File output_vcf = "~{output_basename}_vep.vcf.gz"
-        File output_vcf_index = "~{output_basename}_vep.vcf.gz"
+        File output_vcf_index = "~{output_basename}_vep.vcf.gz.tbi"
     }
 }
