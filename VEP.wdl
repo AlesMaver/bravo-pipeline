@@ -346,7 +346,7 @@ task RunVEP {
     input {
         File input_vcf
         File input_vcf_index
-        Int cpus = 2
+        Int cpus = 6
     }
 
     String output_basename = basename(input_vcf, ".vcf.gz")
