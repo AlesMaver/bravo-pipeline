@@ -111,7 +111,7 @@ workflow vcfNormFilterMerge {
       input:
         input_vcf = select_first([AnnotateWithVCF.output_vcf, VCFmerge.output_vcf]),
         input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, VCFmerge.output_vcf_index]),
-        cpus = threads
+        cpus = if threads < 12 then 12 else threads
     }
 
   } # Close per region scatter
@@ -121,7 +121,7 @@ workflow vcfNormFilterMerge {
       input_vcfs = RunVEP.output_vcf,
       input_vcfs_indices = RunVEP.output_vcf_index,
       output_name = output_vcf_basename,
-      threads = if threads < 12 then 12 else threads
+      threads = threads
   }
 
   call vcfTasks.sortVcf {
