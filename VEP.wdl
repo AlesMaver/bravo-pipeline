@@ -346,7 +346,7 @@ task RunVEP {
     input {
         File input_vcf
         File input_vcf_index
-        Int cpus = 6
+        Int cpus = 12
     }
 
     String output_basename = basename(input_vcf, ".vcf.gz")
@@ -383,7 +383,7 @@ task RunVEP {
         docker: "peterjuv/vep_docker:latest"
         requested_memory_mb_per_core: 2000
         cpu: cpus
-        runtime_minutes: 179
+        runtime_minutes: 10
     }
 
     output {

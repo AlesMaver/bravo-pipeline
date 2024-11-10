@@ -121,7 +121,7 @@ workflow vcfNormFilterMerge {
       input_vcfs = RunVEP.output_vcf,
       input_vcfs_indices = RunVEP.output_vcf_index,
       output_name = output_vcf_basename,
-      threads = threads
+      threads = if threads < 12 then 12 else threads
   }
 
   call vcfTasks.sortVcf {
