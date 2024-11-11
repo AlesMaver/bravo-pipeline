@@ -111,7 +111,7 @@ workflow vcfNormFilterMerge {
       input:
         input_vcf = select_first([AnnotateWithVCF.output_vcf, VCFmerge.output_vcf]),
         input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, VCFmerge.output_vcf_index]),
-        cpus = if threads < 12 then 12 else threads
+        cpus = if threads < 24 then 24 else threads
     }
 
   } # Close per region scatter

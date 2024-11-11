@@ -383,7 +383,7 @@ task RunVEP {
         docker: "peterjuv/vep_docker:latest"
         requested_memory_mb_per_core: 2000
         cpu: cpus
-        runtime_minutes: 30
+        runtime_minutes: 360
     }
 
     output {
