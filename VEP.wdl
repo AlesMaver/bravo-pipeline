@@ -361,7 +361,8 @@ task RunVEP {
       #DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP,$DBNSFP_ANNFIELDS_CLINVAR_VEP"
       DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP"
 
-      vep -i ~{input_vcf} \
+      vep -u vep \
+        -i ~{input_vcf} \
         -o ~{output_basename}_vep.vcf.gz \
         --fork "~{cpus}" --cache --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
         --assembly GRCh38 \
@@ -370,6 +371,7 @@ task RunVEP {
         --allele_number \
         --dir_cache /opt/vep/.vep \
         --merged \
+        --use_given_ref \
         --nearest symbol \
         --no_stats \
         --plugin dbNSFP,/opt/vep/.vep/dbNSFP/dbNSFPv4.9a_custombuild.gz,$DBNSFP_ANNFIELDS_VEP \
