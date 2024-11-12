@@ -1,0 +1,12 @@
+{
+  "vcfAnnotate.input_vcf": "input.vcf.gz",
+  "vcfAnnotate.input_vcf_index": "input.vcf.gz.tbi",
+  "vcfAnnotate.interval_list": "wgs_calling_regions.hg38.interval_list",
+  "vcfAnnotate.thinning_parameter": 1,
+  "vcfAnnotate.scatter_region_size": 300000,
+  "vcfAnnotate.threads": 4,
+  "vcfAnnotate.annotate_with_clinvar": "true",
+  "vcfAnnotate.annotate_with_dbnsfp": "true",
+  "vcfAnnotate.annotate_with_alphamissense": "true",
+  "vcfAnnotate.annotate_with_loftee": "true"
+}
