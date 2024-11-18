@@ -321,8 +321,8 @@ task concatVcf {
     #runtime_minutes: >11h
   }
   output {
-    File output_vcf = "~{output_name}_unsorted.vcf.gz"
-    File output_vcf_index = "~{output_name}_unsorted.vcf.gz.tbi"
+    File output_vcf = "~{output_name}_concat.vcf.gz"
+    File output_vcf_index = "~{output_name}_concat.vcf.gz.tbi"
   }
 }
 
