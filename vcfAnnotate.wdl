@@ -14,8 +14,8 @@ struct VEPReferences {
 }
 
 struct AnnotationFields {
-  String ClinVar_annotation_fields
-  String dbNSFP_annotation_fields
+  String ClinVar
+  String dbNSFP
 }
 
 # WORKFLOW DEFINITION 
