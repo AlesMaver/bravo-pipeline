@@ -215,8 +215,8 @@ task AnnotateVEP {
     vep -i ~{input_vcf} \
       -o ~{output_basename}_VEP.vcf.gz \
       --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-      --fork "~{cpus}" \
-      --cache --merged --dir_cache "~{vep_ref.cache_dir}" \
+      --fork ~{cpus} \
+      --cache --merged --dir_cache ~{vep_ref.cache_dir} \
       --assembly GRCh38 \
       --everything \
       --flag_pick \
@@ -224,10 +224,10 @@ task AnnotateVEP {
       --use_given_ref \
       --nearest symbol \
       --no_stats \
-      --dir_plugins "~{vep_ref.plugins_dir}" \ 
-      --plugin dbNSFP,"~{vep_ref.dbNSFP_vcf}","~{annotation_fields}" \
-      --plugin LoF,loftee_path:"~{vep_ref.plugins_dir}",human_ancestor_fa:"~{vep_ref.loftee_data_dir}"/human_ancestor.fa.gz,conservation_file:"~{vep_ref.loftee_data_dir}"/loftee.sql,gerp_bigwig:"~{vep_ref.loftee_data_dir}"/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
-      --plugin AlphaMissense,file="~{vep_ref.AlphaMissense_data_dir}"/AlphaMissense_hg38.tsv.gz
+      --dir_plugins ~{vep_ref.plugins_dir} \ 
+      --plugin dbNSFP,~{vep_ref.dbNSFP_vcf},~{annotation_fields} \
+      --plugin LoF,loftee_path:~{vep_ref.plugins_dir},human_ancestor_fa:~{vep_ref.loftee_data_dir}/human_ancestor.fa.gz,conservation_file:~{vep_ref.loftee_data_dir}/loftee.sql,gerp_bigwig:~{vep_ref.loftee_data_dir}/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
+      --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>
