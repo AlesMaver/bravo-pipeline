@@ -87,7 +87,7 @@ workflow vcfAnnotate {
       input:
         input_vcf = select_first([AnnotateWithVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, input_vcf_index]),
-        cpus = if threads < 24 then 24 else threads,
+        cpus = if threads < 12 then 12 else threads,
         vep_ref = vep_ref,
         annotation_fields = annotation_fields.dbNSFP,
         output_basename = output_vcf_basename
