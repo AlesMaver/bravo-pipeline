@@ -91,7 +91,7 @@ task VCFsplitter {
   command {
     set -e
     bcftools view -r ~{chromosome} -t ~{chromosome} -S ~{samplesFile} ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz
+    bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz --threads ~{threads}
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -102,6 +102,31 @@ task VCFsplitter {
   output {
     File output_vcf = "~{chromosome_filename}.~{vcf_basename}.vcf.gz"
     File output_vcf_index = "~{chromosome_filename}.~{vcf_basename}.vcf.gz.tbi"
+  }
+}
+
+##############################
+task VCFindex {
+  input {
+    # Command parameters
+    File input_vcf
+    Int threads
+  }
+
+  command {
+    bcftools index -t ~{input_vcf} --threads ~{threads}
+  }
+
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: 1000
+    cpu: threads
+    runtime_minutes: 360
+  }
+
+  output {
+    File output_vcf = input_vcf
+    File output_vcf_index = input_vcf + ".tbi"
   }
 }
 
@@ -122,16 +147,18 @@ task VCFsplitSubset {
 
   command {
     set -e
-    bcftools index -t ~{input_vcf}
+    #bcftools index -t ~{input_vcf} --threads ~{threads}
     bcftools view -r ~{region} -t ~{region} ~{"--force-samples -S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz
+    bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz --threads ~{threads}
   }
+
   runtime {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 360
   }
+
   output {
     File output_vcf = "~{region_filename}.~{vcf_basename}.vcf.gz"
     File output_vcf_index = "~{region_filename}.~{vcf_basename}.vcf.gz.tbi"
@@ -168,7 +195,7 @@ task VCFfilter {
       bcftools view -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
       bcftools filter -e 'INFO/AC=0' | \
       bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz
-    bcftools index -t ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz
+    bcftools index -t ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz --threads ~{threads}
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -199,7 +226,7 @@ task VCFnorm {
   command {
     set -e
     bcftools view ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{vcf_basename}_norm.vcf.gz
-    bcftools index -t ~{vcf_basename}_norm.vcf.gz
+    bcftools index -t ~{vcf_basename}_norm.vcf.gz --threads ~{threads}
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -228,7 +255,7 @@ task VCFmerge {
   command <<<
     set -e
     bcftools merge --threads ~{threads} --force-samples -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
-    bcftools index -t ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
@@ -284,7 +311,7 @@ task VCFfillTags {
   command {
     set -e
     zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads ~{threads} -Oz -o ~{chromosome_filename}.indexed.vcf.gz
-    bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz
+    bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz --threads ~{threads}
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -311,7 +338,7 @@ task concatVcf {
   command <<<
     set -e
     bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools index -t ~{output_name}_unsorted.vcf.gz
+    bcftools index -t ~{output_name}_unsorted.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
@@ -342,7 +369,7 @@ task sortVcf {
     set -e
     mkdir $PWD/sort_tmp
     bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
-    bcftools index -t ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
   runtime {

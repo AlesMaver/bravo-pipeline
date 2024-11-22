@@ -28,9 +28,19 @@ workflow vcfMerge {
       scatter_region_size = scatter_region_size
   }
 
+  scatter (input_vcf in input_vcfs) {
+
+    call vcfTasks.VCFindex {
+      input:
+        input_vcf = input_vcf,
+        threads = threads
+    }
+
+  } # Close per input vcf scatter
+
   scatter (chromosome in SplitRegions.scatter_regions ) {
 
-    scatter (input_vcf in input_vcfs) {
+    scatter (input_vcf in VCFindex.output_vcf) {
       
       call vcfTasks.VCFsplitSubset {
         input:

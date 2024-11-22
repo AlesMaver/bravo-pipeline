@@ -57,9 +57,19 @@ workflow vcfNormFilterMerge {
 
   call VEP.GetClinVarVCF
 
+  scatter (input_vcf in input_vcfs) {
+
+    call vcfTasks.VCFindex {
+      input:
+        input_vcf = input_vcf,
+        threads = threads
+    }
+
+  } # Close per input vcf scatter
+
   scatter (region in SplitRegions.scatter_regions) {
 
-    scatter (input_vcf in input_vcfs) {
+    scatter (input_vcf in VCFindex.output_vcf) {
 
       call vcfTasks.VCFsplitSubset {
         input:
