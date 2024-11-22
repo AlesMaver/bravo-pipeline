@@ -83,29 +83,30 @@ workflow vcfAnnotate {
       }
     }
 
-    call vcfTasks.VCFsplitSubset as dbNSFPsplit {
-      input:
-        input_vcf = vep_ref.dbNSFP_vcf,
-        region = region,
-        threads = threads
-    }
-
-    VEPReferences vep_ref_split = object {
-      cache_dir: vep_ref.cache_dir,
-      plugins_dir: vep_ref.plugins_dir,
-      dbNSFP_vcf: dbNSFPsplit.output_vcf,
-      dbNSFP_vcf_index: dbNSFPsplit.output_vcf_index,
-      dbNSFP_vcf_readme: vep_ref.dbNSFP_vcf_readme,
-      loftee_data_dir: vep_ref.loftee_data_dir,
-      AlphaMissense_data_dir: vep_ref.AlphaMissense_data_dir
-    }
+#    call vcfTasks.VCFsplitSubset as dbNSFPsplit {
+#      input:
+#        input_vcf = vep_ref.dbNSFP_vcf,
+#        region = region,
+#        threads = threads
+#    }
+#
+#    VEPReferences vep_ref_split = object {
+#      cache_dir: vep_ref.cache_dir,
+#      plugins_dir: vep_ref.plugins_dir,
+#      dbNSFP_vcf: dbNSFPsplit.output_vcf,
+#      dbNSFP_vcf_index: dbNSFPsplit.output_vcf_index,
+#      dbNSFP_vcf_readme: vep_ref.dbNSFP_vcf_readme,
+#      loftee_data_dir: vep_ref.loftee_data_dir,
+#      AlphaMissense_data_dir: vep_ref.AlphaMissense_data_dir
+#    }
 
     call AnnotateVEP {
       input:
         input_vcf = select_first([AnnotateWithVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, input_vcf_index]),
         cpus = if threads < 12 then 12 else threads,
-        vep_ref = vep_ref_split,
+        vep_ref = vep_ref,
+        #vep_ref = vep_ref_split,
         annotation_fields = annotation_fields.dbNSFP,
         output_basename = output_vcf_basename
       }
