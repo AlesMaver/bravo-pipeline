@@ -1,5 +1,12 @@
+## DEPRECATED, replaced by vcfNormFilterMerge.wdl
+## Uses bcftools with a single VCF files to:
+## - subset samples (skipping non-existing), 
+## - normalize VCF (left-align and normalize indels, check if REF alleles match the reference, split multiallelic sites into biallelic -m-any),
+## - filter/annotate (+setGT ./. GQ<20, annotate PGT & PID, --types snps,indels, +fill-tags, include F_MISSING<..., exclude AC=0, include QUAL>100)
+## Note that we do not sort VCF, which (might) be needed needed after normalization ?!
+
 version 1.0
-## Copyright CMG@KIGM, Peter Juvan
+## Copyright CMG@KIGM, Peter Juvan & Ales Maver
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
@@ -39,14 +46,14 @@ workflow vcfFilterNorm {
       scatter_region_size = scatter_region_size
   }
 
-  scatter (chromosome in SplitRegions.scatter_regions ) {
+  scatter (region in SplitRegions.scatter_regions ) {
 
     call vcfTasks.VCFsplitSubset {
       input:
         input_vcf = input_vcf,
-        input_vcf_index = input_vcf_index,
+        #input_vcf_index = input_vcf_index,
         samplesFile = samplesFile,
-        chromosome = chromosome,
+        region = region,
         threads = threads
     }
 
@@ -66,7 +73,7 @@ workflow vcfFilterNorm {
         F_MISSING_upper_bounds = F_MISSING_upper_bounds
     }
 
-  } # Close per chromosome scatter
+  } # Close per region scatter
 
   call vcfTasks.concatVcf {
     input:

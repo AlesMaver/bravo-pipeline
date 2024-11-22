@@ -1,5 +1,5 @@
 version 1.0
-## Copyright CMG@KIGM, Peter Juvan
+## Copyright CMG@KIGM, Peter Juvan & Ales Maver
 
 import "./vcfTasks.wdl" as vcfTasks
 
@@ -71,7 +71,7 @@ workflow vcfAnnotate {
   scatter (region in SplitRegions.scatter_regions) {
 
     if ( annotate_with_clinvar ) {
-      call AnnotateWithVCF {
+      call AnnotateWithClinVarVCF {
         input:
           input_vcf = input_vcf,
           input_vcf_index = input_vcf_index,
@@ -83,27 +83,10 @@ workflow vcfAnnotate {
       }
     }
 
-#    call vcfTasks.VCFsplitSubset as dbNSFPsplit {
-#      input:
-#        input_vcf = vep_ref.dbNSFP_vcf,
-#        region = region,
-#        threads = threads
-#    }
-#
-#    VEPReferences vep_ref_split = object {
-#      cache_dir: vep_ref.cache_dir,
-#      plugins_dir: vep_ref.plugins_dir,
-#      dbNSFP_vcf: dbNSFPsplit.output_vcf,
-#      dbNSFP_vcf_index: dbNSFPsplit.output_vcf_index,
-#      dbNSFP_vcf_readme: vep_ref.dbNSFP_vcf_readme,
-#      loftee_data_dir: vep_ref.loftee_data_dir,
-#      AlphaMissense_data_dir: vep_ref.AlphaMissense_data_dir
-#    }
-
-    call AnnotateVEP {
+    call VEP {
       input:
-        input_vcf = select_first([AnnotateWithVCF.output_vcf, input_vcf]),
-        input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, input_vcf_index]),
+        input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
+        input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
         cpus = if threads < 12 then 12 else threads,
         vep_ref = vep_ref,
         #vep_ref = vep_ref_split,
@@ -115,8 +98,8 @@ workflow vcfAnnotate {
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = AnnotateVEP.output_vcf,
-      input_vcfs_indices = AnnotateVEP.output_vcf_index,
+      input_vcfs = VEP.output_vcf,
+      input_vcfs_indices = VEP.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
@@ -127,7 +110,6 @@ workflow vcfAnnotate {
   }
 
 } # Close workflow
-
 
 
 ##############################
@@ -154,7 +136,7 @@ task GetClinVarVCF {
 } 
 
 ##############################
-task AnnotateWithVCF {
+task AnnotateWithClinVarVCF {
   input {
     # Command parameters
     File input_vcf
@@ -188,7 +170,6 @@ task AnnotateWithVCF {
   }
 }
 
-
 ##############################
 # singularity exec \
 #   -B $DIRVEP:/data \
@@ -219,7 +200,7 @@ task AnnotateWithVCF {
 #     --plugin AlphaMissense,file=/AlphaMissense/AlphaMissense_hg38.tsv.gz && \
 #     tabix --force --preset vcf /output/$FNTESTOUT"
 ##############################
-task AnnotateVEP {
+task VEP {
   input {
     File input_vcf
     File input_vcf_index
@@ -262,53 +243,3 @@ task AnnotateVEP {
       File output_vcf_index = "~{output_basename}_VEP.vcf.gz.tbi"
   }
 }
-
-##############################
-# task RunVEP {
-#     input {
-#       File input_vcf
-#       File input_vcf_index
-#       Int cpus = 12
-#       String output_basename = basename(input_vcf, ".vcf.gz")
-#     }
-
-#     command <<<
-#       PERL5LIB=:\$PERL5LIB:/opt/vep/.vep/Plugins/loftee
-
-#       DBNSFP_ANNFIELDS_DEFAULT_VEP="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
-#       DBNSFP_ANNFIELDS_PRED_VEP="MetaRNN_score,MetaRNN_rankscore,MetaRNN_pred,REVEL_score,REVEL_rankscore,Aloft_prob_Tolerant,Aloft_prob_Recessive,Aloft_prob_Dominant,Aloft_pred,Aloft_Confidence"
-#       DBNSFP_ANNFIELDS_GNOMAD_VEP="gnomAD_exomes_AC,gnomAD_exomes_nhomalt,gnomAD_exomes_POPMAX_AC,gnomAD_exomes_POPMAX_AF,gnomAD_exomes_POPMAX_nhomalt,gnomAD_exomes_NFE_AC,gnomAD_exomes_NFE_nhomalt,gnomAD_genomes_AC,gnomAD_genomes_AF,gnomAD_genomes_nhomalt,gnomAD_genomes_POPMAX_AC,gnomAD_genomes_POPMAX_AF,gnomAD_genomes_POPMAX_nhomalt,gnomAD_genomes_NFE_AC,gnomAD_genomes_NFE_AF,gnomAD_genomes_NFE_nhomalt"
-#       #DBNSFP_ANNFIELDS_CLINVAR_VEP="clinvar_id,clinvar_clnsig,clinvar_trait,clinvar_review,clinvar_hgvs,clinvar_var_source,clinvar_MedGen_id,clinvar_OMIM_id,clinvar_Orphanet_id"
-#       #DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP,$DBNSFP_ANNFIELDS_CLINVAR_VEP"
-#       DBNSFP_ANNFIELDS_VEP="$DBNSFP_ANNFIELDS_DEFAULT_VEP,$DBNSFP_ANNFIELDS_PRED_VEP,$DBNSFP_ANNFIELDS_GNOMAD_VEP"
-
-#       vep -i ~{input_vcf} \
-#         -o ~{output_basename}_vep.vcf.gz \
-#         --fork "~{cpus}" --cache --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-#         --assembly GRCh38 \
-#         --everything \
-#         --flag_pick \
-#         --allele_number \
-#         --dir_cache /opt/vep/.vep \
-#         --merged \
-#         --nearest symbol \
-#         --no_stats \
-#         --plugin dbNSFP,/opt/vep/.vep/dbNSFP/dbNSFPv4.9a_custombuild.gz,$DBNSFP_ANNFIELDS_VEP \
-#         --plugin AlphaMissense,file=/opt/vep/.vep/Plugins/AlphaMissense/AlphaMissense_hg38.tsv.gz \
-#         --plugin LoF,loftee_path:/opt/vep/.vep/Plugins/loftee/,human_ancestor_fa:/opt/vep/.vep/Plugins/loftee/data/human_ancestor.fa.gz,conservation_file:/opt/vep/.vep/Plugins/loftee/data/loftee.sql,gerp_bigwig:/opt/vep/.vep/Plugins/loftee/data/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
-
-#       tabix -p vcf ~{output_basename}_vep.vcf.gz
-#     >>>
-
-#     runtime {
-#         docker: "peterjuv/vep_docker:latest"
-#         requested_memory_mb_per_core: 2000
-#         cpu: cpus
-#         runtime_minutes: 360
-#     }
-
-#     output {
-#         File output_vcf = "~{output_basename}_vep.vcf.gz"
-#         File output_vcf_index = "~{output_basename}_vep.vcf.gz.tbi"
-#     }
-# }

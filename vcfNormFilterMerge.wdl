@@ -5,19 +5,12 @@
 ## - normalize VCF (left-align and normalize indels, check if REF alleles match the reference, split multiallelic sites into biallelic -m-any),
 ## - filter/annotate (+setGT ./. GQ<20, annotate PGT & PID, --types snps,indels, +fill-tags, include F_MISSING<..., exclude AC=0, include QUAL>100)
 ## - merge resulting VCFs
-## - annotate with clinvar
-## - annotate with VEP & plugins dbNSFP, Loftee & AlphaMissense
+## - sort VCF (needed after normalization)
 
 version 1.0
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
-import "./VEP.wdl" as VEP
-
-#struct VcfAndIndex {
-#  File vcf
-#  File vcf_index
-#}
 
 workflow vcfNormFilterMerge {
   input {
@@ -37,7 +30,6 @@ workflow vcfNormFilterMerge {
 
     # Options
     Float F_MISSING_upper_bounds = 1
-    Boolean annotate_with_clinvar = true
 
     # Output
     String output_vcf_basename
@@ -54,8 +46,6 @@ workflow vcfNormFilterMerge {
       thinning_parameter = thinning_parameter,
       scatter_region_size = scatter_region_size
   }
-
-  call VEP.GetClinVarVCF
 
   scatter (input_vcf in input_vcfs) {
 
@@ -105,31 +95,12 @@ workflow vcfNormFilterMerge {
         threads = threads
     }
 
-    if ( annotate_with_clinvar ) {
-      call VEP.AnnotateWithVCF {
-        input:
-          input_vcf = VCFmerge.output_vcf,
-          input_vcf_index = VCFmerge.output_vcf_index,
-          annotation_vcf = GetClinVarVCF.output_vcf,
-          annotation_vcf_index = GetClinVarVCF.output_vcf_index,
-          chromosome = region,
-          annotation_fields ="CLNDN,CLNDNINCL,CLNDISDB,CLNDISDBINCL,CLNHGVS,CLNREVSTAT,CLNSIG,CLNSIGCONF,CLNSIGINCL,CLNVC,CLNVCSO,CLNVI,DBVARID,GENEINFO,MC,ORIGIN,RS"
-      }
-    }
-
-    call VEP.RunVEP {
-      input:
-        input_vcf = select_first([AnnotateWithVCF.output_vcf, VCFmerge.output_vcf]),
-        input_vcf_index = select_first([AnnotateWithVCF.output_vcf_index, VCFmerge.output_vcf_index]),
-        cpus = if threads < 24 then 24 else threads
-    }
-
   } # Close per region scatter
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = RunVEP.output_vcf,
-      input_vcfs_indices = RunVEP.output_vcf_index,
+      input_vcfs = VCFmerge.output_vcf,
+      input_vcfs_indices = VCFmerge.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
