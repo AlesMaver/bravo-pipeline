@@ -51,7 +51,7 @@ workflow vcfFilterNorm {
     call vcfTasks.VCFsplitSubset {
       input:
         input_vcf = input_vcf,
-        #input_vcf_index = input_vcf_index,
+        input_vcf_index = input_vcf_index,
         samplesFile = samplesFile,
         region = region,
         threads = threads

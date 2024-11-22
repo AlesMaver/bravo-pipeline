@@ -136,7 +136,7 @@ task VCFsplitSubset {
   input {
     # Command parameters
     File input_vcf
-    #File input_vcf_index
+    File input_vcf_index
     File? samplesFile
     String region
     Int threads

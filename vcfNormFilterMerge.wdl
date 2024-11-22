@@ -16,6 +16,7 @@ workflow vcfNormFilterMerge {
   input {
  #   Array [VcfAndIndex] input_vcfAndInds
     Array [File] input_vcfs
+    Array [File] input_vcfs_index
 
     File interval_list
     Int? thinning_parameter
@@ -47,23 +48,14 @@ workflow vcfNormFilterMerge {
       scatter_region_size = scatter_region_size
   }
 
-  scatter (input_vcf in input_vcfs) {
-
-    call vcfTasks.VCFindex {
-      input:
-        input_vcf = input_vcf,
-        threads = threads
-    }
-
-  } # Close per input vcf scatter
-
   scatter (region in SplitRegions.scatter_regions) {
 
-    scatter (input_vcf in VCFindex.output_vcf) {
+    scatter (idx in range(length(input_vcfs))) {
 
       call vcfTasks.VCFsplitSubset {
         input:
-          input_vcf = input_vcf,
+          input_vcf = input_vcfs[idx],
+          input_vcf_index = input_vcfs_index[idx],
           samplesFile = samplesFile,
           region = region,
           threads = threads
