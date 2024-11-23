@@ -337,8 +337,8 @@ task concatVcf {
   
   command <<<
     set -e
-    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_unsorted.vcf.gz
-    bcftools index -t ~{output_name}_unsorted.vcf.gz --threads ~{threads}
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_concat.vcf.gz
+    bcftools index -t ~{output_name}_concat.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
