@@ -342,7 +342,7 @@ task concatVcf {
   >>>
 
   runtime {
-    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     #runtime_minutes: >11h
@@ -367,14 +367,14 @@ task sortVcf {
   
   command <<<
     set -e
-    #mkdir $PWD/sort_tmp
-    #bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
-    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz -m "~{max_mem_scale_factor * threads}G"
+    mkdir $PWD/sort_tmp
+    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
+    #bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz -m "~{max_mem_scale_factor * threads}G"
     bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
-    docker: "biocontainers/bcftools:v1.9-1-deb_cv1"
+    docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 8000
     cpu: threads
     #runtime_minutes: 90
