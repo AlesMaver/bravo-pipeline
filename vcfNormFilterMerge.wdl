@@ -97,18 +97,23 @@ workflow vcfNormFilterMerge {
       threads = threads
   }
 
-  call vcfTasks.sortVcf {
-    input:
-      input_vcf = concatVcf.output_vcf,
-      input_vcf_index = concatVcf.output_vcf_index,
-      output_name = output_vcf_basename,
-      threads = threads
+  output {
+    File output_vcf = concatVcf.output_vcf
+    File output_vcf_index = concatVcf.output_vcf_index
   }
 
-  output {
-    File output_vcf = sortVcf.output_vcf
-    File output_vcf_index = sortVcf.output_vcf_index
-  }
+  #call vcfTasks.sortVcf {
+  #  input:
+  #    input_vcf = concatVcf.output_vcf,
+  #    input_vcf_index = concatVcf.output_vcf_index,
+  #    output_name = output_vcf_basename,
+  #    threads = threads
+  #}
+
+  #output {
+  #  File output_vcf = sortVcf.output_vcf
+  #  File output_vcf_index = sortVcf.output_vcf_index
+  #}
 
 } # Close workflow
 
