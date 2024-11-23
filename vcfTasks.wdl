@@ -343,7 +343,7 @@ task concatVcf {
 
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 1000
+    requested_memory_mb_per_core: 2000
     cpu: threads
     #runtime_minutes: >11h
   }

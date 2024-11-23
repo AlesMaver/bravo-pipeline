@@ -89,31 +89,18 @@ workflow vcfNormFilterMerge {
 
   } # Close per region scatter
 
-  call vcfTasks.concatVcf {
+  call vcfTasks.sortVcf {
     input:
-      input_vcfs = VCFmerge.output_vcf,
-      input_vcfs_indices = VCFmerge.output_vcf_index,
+      input_vcf = concatVcf.output_vcf,
+      input_vcf_index = concatVcf.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
 
   output {
-    File output_vcf = concatVcf.output_vcf
-    File output_vcf_index = concatVcf.output_vcf_index
+    File output_vcf = sortVcf.output_vcf
+    File output_vcf_index = sortVcf.output_vcf_index
   }
-
-  #call vcfTasks.sortVcf {
-  #  input:
-  #    input_vcf = concatVcf.output_vcf,
-  #    input_vcf_index = concatVcf.output_vcf_index,
-  #    output_name = output_vcf_basename,
-  #    threads = threads
-  #}
-
-  #output {
-  #  File output_vcf = sortVcf.output_vcf
-  #  File output_vcf_index = sortVcf.output_vcf_index
-  #}
 
 } # Close workflow
 
