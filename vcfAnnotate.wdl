@@ -87,6 +87,7 @@ workflow vcfAnnotate {
         input:
           input_vcf = input_vcf,
           input_vcf_index = input_vcf_index,
+          threads = threads,
           annotation_vcf = GetClinVarVCF.output_vcf,
           annotation_vcf_index = GetClinVarVCF.output_vcf_index,
           region = region,
@@ -153,20 +154,20 @@ task AnnotateWithClinVarVCF {
     # Command parameters
     File input_vcf
     File input_vcf_index
-
+    Int threads = 4
     File annotation_vcf
     File annotation_vcf_index
 
     String region
-
     String annotation_fields
-  
     String output_basename = basename(input_vcf, ".vcf.gz")
   }
 
   command <<<
     set -e
-    bcftools annotate -r ~{region} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o ~{output_basename}_ClinVar.vcf.gz --write-index=tbi
+    bcftools annotate -r ~{region} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o ~{output_basename}_ClinVar.vcf.gz
+    bcftools index -t ~{output_basename}_ClinVar.vcf.gz --threads ~{threads}
+
   >>>
 
   runtime {
@@ -212,6 +213,7 @@ task AnnotateWithClinVarVCF {
 #     --plugin AlphaMissense,file=/AlphaMissense/AlphaMissense_hg38.tsv.gz && \
 #     tabix --force --preset vcf /output/$FNTESTOUT"
 ##############################
+## Plugin LoF requires input_vcf_index to be in .tbi format.
 task VEP {
   input {
     File input_vcf
