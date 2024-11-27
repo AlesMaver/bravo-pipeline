@@ -363,14 +363,12 @@ task sortVcf {
       File input_vcf_index
       String output_name
       Int threads
-      Float max_mem_scale_factor = 7.5 
     }
   
   command <<<
     set -e
     mkdir $PWD/sort_tmp
-    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{max_mem_scale_factor * threads}G"
-    #bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz -m "~{max_mem_scale_factor * threads}G"
+    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{8*threads-1}G"
     bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
@@ -378,7 +376,7 @@ task sortVcf {
     docker: "dceoy/bcftools"
     requested_memory_mb_per_core: 8000
     cpu: threads
-    #runtime_minutes: 90
+    #runtime_minutes: 2880
   }
   output {
     File output_vcf = "~{output_name}.vcf.gz"

@@ -87,16 +87,26 @@ workflow vcfNormFilterMerge {
         threads = threads
     }
 
+    # pre-sort per region to speed-up final sort
+    call vcfTasks.sortVcf as sortVcfPerRegion {
+      input:
+        input_vcf = VCFmerge.output_vcf,
+        input_vcf_index = VCFmerge.output_vcf_index,
+        output_name = output_vcf_basename,
+        threads = threads
+    }    
+
   } # Close per region scatter
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = VCFmerge.output_vcf,
-      input_vcfs_indices = VCFmerge.output_vcf_index,
+      input_vcfs = sortVcfPerRegion.output_vcf,
+      input_vcfs_indices = sortVcfPerRegion.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
 
+  # final sort
   call vcfTasks.sortVcf {
     input:
       input_vcf = concatVcf.output_vcf,
