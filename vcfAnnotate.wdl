@@ -100,7 +100,7 @@ workflow vcfAnnotate {
       input:
         input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
-        cpus = if threads < 48 then 48 else threads,
+        cpus = if threads < 6 then 6 else threads,
         vep_ref = vep_ref,
         #vep_ref = vep_ref_split,
         annotation_fields = annotation_fields.dbNSFP,
@@ -138,7 +138,7 @@ task GetClinVarVCF {
   runtime {
     docker: "alesmaver/bcftools"
     requested_memory_mb_per_core: 2000
-    cpu: 3
+    cpu: 4
     runtime_minutes: 20
   }
 
@@ -184,41 +184,15 @@ task AnnotateWithClinVarVCF {
 }
 
 ##############################
-# singularity exec \
-#   -B $DIRVEP:/data \
-#   -B $PLUGDIR:/plugins \
-#   -B $dbNSFP_vcf:/dbNSFP${dbNSFPver}_grch38.gz \
-#   -B $dbNSFP_vcf_index:/dbNSFP${dbNSFPver}_grch38.gz.tbi \
-#   -B $dbNSFP_readme:/dbNSFP${dbNSFPver}.readme.txt \
-#   -B $DIRLOF_DATA:/lofteeGRCh38_data \
-#   -B $DIRALPHA:/AlphaMissense \
-#   -B $DIRTEST:/input \
-#   -B $DIRTEST:/output \
-#   $VEPIMAGE bash -c "\
-#   vep -i /input/${FNTEST} \
-#     -o /output/$FNTESTOUT \
-#     --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-#     --fork 30 \
-#     --cache --merged --dir_cache /data \
-#     --assembly GRCh38 \
-#     --everything \
-#     --flag_pick \
-#     --allele_number \
-#     --nearest symbol \
-#     --use_given_ref \
-#     --no_stats  \
-#     --dir_plugins /plugins \
-#     --plugin dbNSFP,/dbNSFP${dbNSFPver}_grch38.gz,${DBNSFP_ANNFIELDS_VEP} \
-#     --plugin LoF,loftee_path:/plugins/,human_ancestor_fa:/lofteeGRCh38_data/human_ancestor.fa.gz,conservation_file:/lofteeGRCh38_data/loftee.sql,gerp_bigwig:/lofteeGRCh38_data/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
-#     --plugin AlphaMissense,file=/AlphaMissense/AlphaMissense_hg38.tsv.gz && \
-#     tabix --force --preset vcf /output/$FNTESTOUT"
-##############################
-## Plugin LoF requires input_vcf_index to be in .tbi format.
+## Plugin LoF requires input_vcf_index to be in .tbi format
+## --fork chould not be used @ Vega
+## recommended runtime cpu: 6 (estimated by mem usage for SGP VCF consisting 9425 samples and scatter_region_size = 300000)
+## To consider: --buffer_size 50 (default 5000) will use less memory
 task VEP {
   input {
     File input_vcf
     File input_vcf_index
-    Int cpus = 12
+    Int cpus = 6
     VEPReferences vep_ref
     String annotation_fields
     String output_basename = basename(input_vcf, ".vcf.gz")
@@ -239,7 +213,6 @@ task VEP {
       --dir_plugins ~{vep_ref.plugins_dir} \
       --plugin dbNSFP,~{vep_ref.dbNSFP_vcf},~{annotation_fields} \
       --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz
-      #--fork ~{cpus} \
       #--plugin LoF,loftee_path:~{vep_ref.plugins_dir},human_ancestor_fa:~{vep_ref.loftee_data_dir}/human_ancestor.fa.gz,conservation_file:~{vep_ref.loftee_data_dir}/loftee.sql,gerp_bigwig:~{vep_ref.loftee_data_dir}/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
@@ -249,7 +222,7 @@ task VEP {
       docker: "ensemblorg/ensembl-vep:latest"
       requested_memory_mb_per_core: 2000
       cpu: cpus
-      runtime_minutes: 120
+      runtime_minutes: 60
   }
 
   output {
