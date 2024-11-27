@@ -355,7 +355,7 @@ task concatVcf {
 
 ##############################
 ## bcftools norm can affect the order of variants in a VCF file; thus we need to sort
-## mem is scaled for largemem partition @ Vega (8G per core)
+## mem can be scaled for largemem partition @ Vega by setting memory_mb_per_core = 8000 
 ## we do not use --temp-dir because we want to use /scratch/slurm/$SLURM_JOB_ID @ Vega
 task sortVcf {
     input {
@@ -363,18 +363,19 @@ task sortVcf {
       File input_vcf_index
       String output_name
       Int threads
+      Int memory_mb_per_core = 2000
     }
   
   command <<<
     set -e
     mkdir $PWD/sort_tmp
-    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{8*threads-1}G"
+    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G"
     bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
     docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 8000
+    requested_memory_mb_per_core: memory_mb_per_core
     cpu: threads
     #runtime_minutes: 2880
   }
