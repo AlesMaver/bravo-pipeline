@@ -92,7 +92,7 @@ workflow vcfAnnotate {
           annotation_vcf_index = GetClinVarVCF.output_vcf_index,
           region = region,
           annotation_fields = annotation_fields.ClinVar,
-          output_basename = output_vcf_basename
+          output_basename = sub(sub(region, "-", "_"), ":", "__") + ".anClinVar." + output_vcf_basename
       }
     }
 
@@ -104,7 +104,7 @@ workflow vcfAnnotate {
         vep_ref = vep_ref,
         #vep_ref = vep_ref_split,
         annotation_fields = annotation_fields.dbNSFP,
-        output_basename = output_vcf_basename
+        output_basename = sub(sub(region, "-", "_"), ":", "__") + ".anVEP." + output_vcf_basename
       }
 
   } # Close scatter region
@@ -207,13 +207,13 @@ task VEP {
       --everything \
       --flag_pick \
       --allele_number \
-      --use_given_ref \
       --nearest symbol \
       --no_stats \
       --dir_plugins ~{vep_ref.plugins_dir} \
       --plugin dbNSFP,~{vep_ref.dbNSFP_vcf},~{annotation_fields} \
       --plugin LoF,loftee_path:~{vep_ref.plugins_dir},human_ancestor_fa:~{vep_ref.loftee_data_dir}/human_ancestor.fa.gz,conservation_file:~{vep_ref.loftee_data_dir}/loftee.sql,gerp_bigwig:~{vep_ref.loftee_data_dir}/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
       --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz
+      #--use_given_ref \
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>
