@@ -4,7 +4,7 @@
   "final_workflow_log_dir": "/absPath/log/wf",
   "final_call_logs_dir": "/absPath/log/call",
   "default_runtime_attributes": {
-    "cpu": 2,
+    "cpu": 4,
     "requested_memory_mb_per_core": 2000,
     "runtime_minutes": 2880
   }

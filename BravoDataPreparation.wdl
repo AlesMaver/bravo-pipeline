@@ -73,30 +73,32 @@ workflow BravoDataPreparation {
     call vcfTasks.RemoveReportedVariants {
       input:
         input_vcf = VCFsplitter.output_vcf,
-        reported_variants = reported_variants
+        reported_variants = reported_variants,
+        threads = threads
     }
 
     call vcfTasks.VCFfillTags {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
+        input_vcf_index = RemoveReportedVariants.output_vcf_index,
         chromosome = chromosome,
         threads = threads
     }
 
-    call vcfTasks.VCFfilter {
-  		input:
-  			input_vcf = VCFfillTags.output_vcf,
-        input_vcf_index = VCFfillTags.output_vcf_index,
-        threads = threads,
-        F_MISSING_upper_bounds = F_MISSING_upper_bounds
-  	}
+## not needed
+#     call vcfTasks.VCFfilter {
+#  		input:
+#  			input_vcf = VCFfillTags.output_vcf,
+#        input_vcf_index = VCFfillTags.output_vcf_index,
+#        threads = threads,
+#        F_MISSING_upper_bounds = F_MISSING_upper_bounds
+#  	}
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
   		input:
-        input_vcf = VCFfilter.output_vcf,
-        input_vcf_index = VCFfilter.output_vcf_index,
+        input_vcf = VCFfillTags.output_vcf,
+        input_vcf_index = VCFfillTags.output_vcf_index,
         samplesFile = samplesFile,
-        referenceFasta = referenceFasta,
         cadScores = cadScores,
         cadScoresIndex = cadScoresIndex,
         infoFields = infoFields,
@@ -121,24 +123,16 @@ workflow BravoDataPreparation {
     }
   } # Close per chromosome scatter
 
-  # Concatenate VCFs from prepare percentiles task
+  # Concatenate VCFs with removed reported variants
   call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants {
     input:
       input_vcfs = VCFfillTags.output_vcf,
       input_vcfs_indices = VCFfillTags.output_vcf_index,
-      output_name = "output_RemoveReportedVariants",
+      output_name = basename(input_vcf, ".vcf.gz"),
       threads = threads
   }
 
-  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants_filtered {
-    input:
-      input_vcfs = VCFfilter.output_vcf,
-      input_vcfs_indices = VCFfilter.output_vcf_index,
-      output_name = "output_RemoveReportedVariants_filtered",
-      threads = threads
-  }
-
-  # Concatenate VCFs with removed reported variants
+  # Concatenate VCFs from prepare percentiles task
   call vcfTasks.concatVcf {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
@@ -184,12 +178,9 @@ workflow BravoDataPreparation {
     File output_vcf = addPercentiles.out
     File output_vcfs_indices = addPercentiles.out_index
     File output_metrics_json = addPercentiles.metrics_json
-    #Array[Array[File]] out_metrics_files = prepareVCFs.out_metrics
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
     File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants.output_vcf_index
-    File RemoveReportedVariants_filtered_output_vcf = concatVcf_RemoveReportedVariants_filtered.output_vcf
-    File RemoveReportedVariants_filtered_output_vcf_index = concatVcf_RemoveReportedVariants_filtered.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
     Array[File]? out_crais = concatCrams.output_cram_index
   }

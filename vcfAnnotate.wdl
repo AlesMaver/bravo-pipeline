@@ -35,16 +35,17 @@ workflow vcfAnnotate {
     Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
 
     Boolean annotate_with_clinvar = true
-
     #### TODO IMPLEMENT
     Boolean annotate_with_dbnsfp = true
     Boolean annotate_with_alphamissense = true
     Boolean annotate_with_loftee = true
 
-    # VEP references
+    # VEP
     VEPReferences vep_ref
+    String assembly = "GRCh38"
+    Int buffer_size = 5000
 
-    ## VEP annotations
+    ## Annotations
     # String DBNSFP_ANNFIELDS_DEFAULT="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
     # String DBNSFP_ANNFIELDS_PRED=   "MetaRNN_score,MetaRNN_rankscore,MetaRNN_pred,REVEL_score,REVEL_rankscore,Aloft_prob_Tolerant,Aloft_prob_Recessive,Aloft_prob_Dominant,Aloft_pred,Aloft_Confidence"
     # String DBNSFP_ANNFIELDS_GNOMAD= "gnomAD_exomes_AC,gnomAD_exomes_nhomalt,gnomAD_exomes_POPMAX_AC,gnomAD_exomes_POPMAX_AF,gnomAD_exomes_POPMAX_nhomalt,gnomAD_exomes_NFE_AC,gnomAD_exomes_NFE_nhomalt,gnomAD_genomes_AC,gnomAD_genomes_AF,gnomAD_genomes_nhomalt,gnomAD_genomes_POPMAX_AC,gnomAD_genomes_POPMAX_AF,gnomAD_genomes_POPMAX_nhomalt,gnomAD_genomes_NFE_AC,gnomAD_genomes_NFE_AF,gnomAD_genomes_NFE_nhomalt"
@@ -94,7 +95,11 @@ workflow vcfAnnotate {
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
         cpus = if threads < 6 then 6 else threads,
         vep_ref = vep_ref,
-        #vep_ref = vep_ref_split,
+        assembly = assembly,
+        buffer_size = buffer_size,
+        annotate_with_dbnsfp = annotate_with_dbnsfp,
+        annotate_with_alphamissense = annotate_with_alphamissense,
+        annotate_with_loftee = annotate_with_loftee,
         annotation_fields = annotation_fields.dbNSFP,
         output_basename = sub(sub(region, "-", "_"), ":", "__") + ".anVEP." + output_vcf_basename
       }
@@ -177,16 +182,27 @@ task AnnotateWithClinVarVCF {
 
 ##############################
 ## Plugin LoF requires input_vcf_index to be in .tbi format
-## --fork chould not be used @ Vega
 ## recommended runtime cpu: 6 (estimated by mem usage for SGP VCF consisting 9425 samples and scatter_region_size = 300000)
-## To consider: --buffer_size 50 (default 5000) will use less memory
+## 
+## Options disabled:
+## --fork: should not be used @ Vega, makes it crash with ERROR: Forked process(es) died: read-through of cross-process communication detected
+## Options used:
+##  --flag_pick: Instead of choosing one block and removing the others, this option adds a flag "PICK=1" to picked annotation block, allowing you to easily filter on this
+## Options to consider:
+##  --use_given_ref: Using --bam or a BAM-edited RefSeq cache by default enables --use_transcript_ref; add this flag to override this behaviour and use the provided reference allele from the input. 
+##  --shift_hgvs 0: Was used in Bravo vcfPercentilesPreparation.wdl 
 task VEP {
   input {
     File input_vcf
     File input_vcf_index
     Int cpus = 6
     VEPReferences vep_ref
-    String annotation_fields
+    String assembly = "GRCh38"
+    Int buffer_size = 5000
+    Boolean annotate_with_dbnsfp = true
+    Boolean annotate_with_alphamissense = true
+    Boolean annotate_with_loftee = true
+    String? annotation_fields
     String output_basename = basename(input_vcf, ".vcf.gz")
   }
 
@@ -195,7 +211,7 @@ task VEP {
       -o ~{output_basename}_VEP.vcf.gz \
       --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
       --cache --merged --dir_cache ~{vep_ref.cache_dir} \
-      --assembly GRCh38 \
+      --assembly ~{assembly} \
       --everything \
       --flag_pick \
       --allele_number \
@@ -204,8 +220,8 @@ task VEP {
       --dir_plugins ~{vep_ref.plugins_dir} \
       --plugin dbNSFP,~{vep_ref.dbNSFP_vcf},~{annotation_fields} \
       --plugin LoF,loftee_path:~{vep_ref.plugins_dir},human_ancestor_fa:~{vep_ref.loftee_data_dir}/human_ancestor.fa.gz,conservation_file:~{vep_ref.loftee_data_dir}/loftee.sql,gerp_bigwig:~{vep_ref.loftee_data_dir}/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
-      --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz
-      #--use_given_ref \
+      --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz \
+      --buffer_size ~{buffer_size}
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>

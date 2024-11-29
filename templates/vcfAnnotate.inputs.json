@@ -3,7 +3,7 @@
   "vcfAnnotate.input_vcf_index": "/absPath/input.vcf.gz.tbi",
   "vcfAnnotate.interval_list": "/absPath/wgs_calling_regions.hg38.interval_list",
   "vcfAnnotate.thinning_parameter": 1,
-  "vcfAnnotate.scatter_region_size": 300000,
+  "vcfAnnotate.scatter_region_size": 1000000,
   "vcfAnnotate.threads": 4,
   "vcfAnnotate.annotate_with_clinvar": "true",
   "vcfAnnotate.annotate_with_dbnsfp": "true",

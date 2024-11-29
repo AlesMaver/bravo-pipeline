@@ -276,23 +276,26 @@ task RemoveReportedVariants {
     # Command parameters
     File input_vcf
     File reported_variants
+    Int threads = 8
   }
 
-  String output_vcf_filename = "cleaned.vcf.gz"
+  String output_vcf_filename = basename(input_vcf, ".vcf.gz") + "_remReported.vcf.gz"
 
   command {
     set -e
     wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/kigm-dev/removeReportedVariants.py
     python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
+    bcftools index -t ~{output_vcf_filename} --threads ~{threads}
   }
   runtime {
     docker: "amancevice/pandas"
     requested_memory_mb_per_core: 2000
-    cpu: 8
+    cpu: threads
     runtime_minutes: 60
   }
   output {
     File output_vcf = "~{output_vcf_filename}"
+    File output_vcf_index = "~{output_vcf_filename}.tbi"
   }
 }
 
@@ -302,16 +305,17 @@ task RemoveReportedVariants {
 task VCFfillTags {
   input {
     File input_vcf
+    File input_vcf_index
     String chromosome = "chromosome"
     Int threads
   }
 
-  String chromosome_filename = sub(sub(chromosome, "-", "_"), ":", "__")
+  String vcf_basename = basename(input_vcf, ".vcf.gz")
 
   command {
     set -e
-    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads ~{threads} -Oz -o ~{chromosome_filename}.indexed.vcf.gz
-    bcftools index  -t ~{chromosome_filename}.indexed.vcf.gz --threads ~{threads}
+    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads ~{threads} -Oz -o ~{vcf_basename}_fillTags.vcf.gz
+    bcftools index  -t ~{vcf_basename}_fillTags.vcf.gz --threads ~{threads}
   }
   runtime {
     docker: "dceoy/bcftools"
@@ -320,8 +324,8 @@ task VCFfillTags {
     runtime_minutes: 60
   }
   output {
-    File output_vcf = "~{chromosome_filename}.indexed.vcf.gz"
-    File output_vcf_index = "~{chromosome_filename}.indexed.vcf.gz.tbi"
+    File output_vcf = "~{vcf_basename}_fillTags.vcf.gz"
+    File output_vcf_index = "~{vcf_basename}_fillTags.vcf.gz.tbi"
   }
 }
 
@@ -396,9 +400,10 @@ task concatCrams {
     }
   
   command <<<
-    # Ensure output files are in the executions dir to allow continuation in case of an empty cram
-    touch ~{chromosome}.cram
-    touch ~{chromosome}.cram.crai
+    mkdir -p cram
+    # Ensure output files are in cram dir to allow continuation in case of an empty cram
+    touch cram/~{chromosome}.cram
+    touch cram/~{chromosome}.cram.crai
     touch chromosome.cram.list
     touch chromosome.cram.non_empty.list
 
@@ -407,8 +412,8 @@ task concatCrams {
 
     if [ -s "chromosome.cram.non_empty.list" ]; then
         echo "At least one input CRAM file found, therefore merging!"
-        samtools merge -b chromosome.cram.list -O CRAM ~{chromosome}.cram --reference ~{referenceFasta} -f
-        samtools index ~{chromosome}.cram
+        samtools merge -b chromosome.cram.non_empty.list -O CRAM cram/~{chromosome}.cram --reference ~{referenceFasta} -f
+        samtools index cram/~{chromosome}.cram
     else
         echo "No input CRAM files, therefore leaving empty final crams!"
     fi
@@ -421,8 +426,8 @@ task concatCrams {
     #runtime_minutes: 90
   }
   output {
-    File output_cram = "~{chromosome}.cram"
-    File output_cram_index = "~{chromosome}.cram.crai"
+    File output_cram = "cram/~{chromosome}.cram"
+    File output_cram_index = "cram/~{chromosome}.cram.crai"
   }
 }
 
