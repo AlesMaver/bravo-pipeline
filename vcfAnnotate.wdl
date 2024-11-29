@@ -1,14 +1,6 @@
 ## Copyright CMG@KIGM, Peter Juvan & Ales Maver
 
 ## CONSIDER:
-## zcat vcfFilterNormMerge/e4eea4d9-2ea9-4187-b789-c91355bc3877/call-RunVEP/shard-10/execution/chr1__6746294_7746294.SGP9427_nrmFlt0.1Mrgd_ClinVar_vep.vcf.gz | grep dbNSFP
-## cat vcfFilterNormMerge/e5698468-c4c8-44b2-a89f-f4174d2d1078/call-RunVEP/shard-145/execution/chr1__155184599_156184599.CMG14137_nrmFlt0.1Mrgd_ClinVar_vep.vcf.gz_warnings.txt
-##  WARNING: Transcript-assembly mismatch in rs914616
-##  WARNING: Transcript-assembly mismatch in chr1_155324912_T/G
-##  WARNING: Transcript-assembly mismatch in chr1_155324912_T/G
-##  WARNING: Transcript-assembly mismatch in rs145411349
-##  WARNING: Transcript-assembly mismatch in rs145411349
-## FIX:
 ##  bcftools +fixref $PVCF -- -m flip -f wgs_reference/Homo_sapiens_assembly38.fasta -i DPSNP/All_20180418_chr.vcf.gz
 
 version 1.0
@@ -38,7 +30,7 @@ workflow vcfAnnotate {
 
     File interval_list
     Int? thinning_parameter
-    Int  scatter_region_size = 300000
+    Int  scatter_region_size = 1000000 # smaller regions result in empty VCFs that will fail at concatenate
 
     Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
 
