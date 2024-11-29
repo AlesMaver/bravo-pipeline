@@ -92,21 +92,27 @@ workflow vcfNormFilterMerge {
       input:
         input_vcf = VCFmerge.output_vcf,
         input_vcf_index = VCFmerge.output_vcf_index,
-        output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,,
+        output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,
         threads = threads
     }    
+
+    call vcfTasks.VCFindex as sortVcfPerRegion_index {
+      input:
+        input_vcf = sortVcfPerRegion.output_vcf,
+        threads = threads
+    }
 
   } # Close per region scatter
 
   call vcfTasks.concatVcf {
     input:
       input_vcfs = sortVcfPerRegion.output_vcf,
-      input_vcfs_indices = sortVcfPerRegion.output_vcf_index,
+      input_vcfs_indices = sortVcfPerRegion_index.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
 
-  call vcfTasks.VCFindex {
+  call vcfTasks.VCFindex as concatVcf_index {
     input:
       input_vcf = concatVcf.output_vcf,
       threads = threads
@@ -116,15 +122,21 @@ workflow vcfNormFilterMerge {
   call vcfTasks.sortVcf {
     input:
       input_vcf = concatVcf.output_vcf,
-      input_vcf_index = VCFindex.output_vcf_index,
+      input_vcf_index = concatVcf_index.output_vcf_index,
       output_name = output_vcf_basename,
-      threads = threads,
+      threads = 2 * threads,
       memory_mb_per_core = 8000
+  }
+
+  call vcfTasks.VCFindex as sortVcf_index {
+    input:
+      input_vcf = sortVcf.output_vcf,
+      threads = threads
   }
 
   output {
     File output_vcf = sortVcf.output_vcf
-    File output_vcf_index = sortVcf.output_vcf_index
+    File output_vcf_index = sortVcf_index.output_vcf_index
   }
 
 } # Close workflow

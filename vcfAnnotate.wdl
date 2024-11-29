@@ -112,18 +112,25 @@ workflow vcfAnnotate {
         input_vcf_index = VEP.output_vcf_index,
         output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,
         threads = threads
-    }    
+    }
+
+    call vcfTasks.VCFindex as sortVcf_index {
+      input:
+        input_vcf = sortVcf.output_vcf,
+        threads = threads
+    }
+
   } # Close scatter region
 
   call vcfTasks.concatVcf {
     input:
       input_vcfs = sortVcf.output_vcf,
-      input_vcfs_indices = sortVcf.output_vcf_index,
+      input_vcfs_indices = sortVcf_index.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
 
-  call vcfTasks.VCFindex {
+  call vcfTasks.VCFindex as concatVcf_index{
     input:
       input_vcf = concatVcf.output_vcf,
       threads = threads
@@ -131,7 +138,7 @@ workflow vcfAnnotate {
 
   output {
     File output_vcf = concatVcf.output_vcf
-    File output_vcfs_indices = VCFindex.output_vcf_index
+    File output_vcfs_indices = concatVcf_index.output_vcf_index
   }
 
 } # Close workflow
