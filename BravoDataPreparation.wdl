@@ -132,12 +132,24 @@ workflow BravoDataPreparation {
       threads = threads
   }
 
-  # Concatenate VCFs from prepare percentiles task
+  call vcfTasks.VCFindex as concatVcf_RemoveReportedVariants_index {
+    input:
+      input_vcf = concatVcf_RemoveReportedVariants.output_vcf,
+      threads = threads
+  }
+
+  # Concatenate VCFs from prepare percentiles task (annotated with VEP)
   call vcfTasks.concatVcf {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
       input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
       output_name = "output",
+      threads = threads
+  }
+
+  call vcfTasks.VCFindex {
+    input:
+      input_vcf = concatVcf.output_vcf,
       threads = threads
   }
 
@@ -167,7 +179,7 @@ workflow BravoDataPreparation {
   call vcfPercentilesPreparation.addPercentiles as addPercentiles {
     input: 
       chromosomeVCF = concatVcf.output_vcf,
-      chromosomeVCFIndex = concatVcf.output_vcf_index,
+      chromosomeVCFIndex = VCFindex.output_vcf_index,
       variantPercentiles = computePercentiles.outVariantPercentile,
       variantPercentilesIndex = computePercentiles.outVariantPercentileIndex,
       metricJSONs = computePercentiles.outAllPercentiles,
@@ -180,7 +192,7 @@ workflow BravoDataPreparation {
     File output_metrics_json = addPercentiles.metrics_json
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
-    File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants.output_vcf_index
+    File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants_index.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
     Array[File]? out_crais = concatCrams.output_cram_index
   }

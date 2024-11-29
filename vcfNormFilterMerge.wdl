@@ -106,11 +106,17 @@ workflow vcfNormFilterMerge {
       threads = threads
   }
 
+  call vcfTasks.VCFindex {
+    input:
+      input_vcf = concatVcf.output_vcf,
+      threads = threads
+  }
+
   # final sort, scaled for largemem partition @ Vega
   call vcfTasks.sortVcf {
     input:
       input_vcf = concatVcf.output_vcf,
-      input_vcf_index = concatVcf.output_vcf_index,
+      input_vcf_index = VCFindex.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads,
       memory_mb_per_core = 8000

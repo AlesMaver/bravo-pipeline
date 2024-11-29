@@ -331,6 +331,7 @@ task VCFfillTags {
 
 
 ##############################
+## Note that we do not index here due to time limits of individual tasks
 task concatVcf {
     input {
       Array[File] input_vcfs
@@ -342,8 +343,8 @@ task concatVcf {
   command <<<
     set -e
     bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_concat.vcf.gz
-    bcftools index -t ~{output_name}_concat.vcf.gz --threads ~{threads}
   >>>
+    #bcftools index -t ~{output_name}_concat.vcf.gz --threads ~{threads}
 
   runtime {
     docker: "dceoy/bcftools"
@@ -353,7 +354,7 @@ task concatVcf {
   }
   output {
     File output_vcf = "~{output_name}_concat.vcf.gz"
-    File output_vcf_index = "~{output_name}_concat.vcf.gz.tbi"
+    #File output_vcf_index = "~{output_name}_concat.vcf.gz.tbi"
   }
 }
 

@@ -123,9 +123,15 @@ workflow vcfAnnotate {
       threads = threads
   }
 
+  call vcfTasks.VCFindex {
+    input:
+      input_vcf = concatVcf.output_vcf,
+      threads = threads
+  }
+
   output {
     File output_vcf = concatVcf.output_vcf
-    File output_vcfs_indices = concatVcf.output_vcf_index
+    File output_vcfs_indices = VCFindex.output_vcf_index
   }
 
 } # Close workflow
