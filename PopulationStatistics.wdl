@@ -30,7 +30,7 @@ workflow PopulationStatistics {
 
   String output_file_name = "MergedVariantTable_~{panel_name}.tab"
 
-  call GetClinVarVCF
+  call vcfTasks.GetClinVarVCF
 
   if ( defined(panel_genes) ) {
     call CreateGenesBed.DownloadAndPrepareBed as CreateGenesBed {
@@ -144,31 +144,8 @@ workflow PopulationStatistics {
 } # Close workflow
 
 
-
 ##############################
-task GetClinVarVCF {
-  command <<<
-    set -e
-    wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
-    wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.tbi
-    wget https://raw.githubusercontent.com/AlesMaver/CMGpipeline/c691a9607e33337084afcc11372ba69ed5870178/references/rename_chrs
-    bcftools annotate --rename-chrs rename_chrs clinvar.vcf.gz --write-index -Oz -o clinvar_fixed.vcf.gz
-  >>>
-
-  runtime {
-    docker: "alesmaver/bcftools"
-    requested_memory_mb_per_core: 2000
-    cpu: 3
-    #runtime_minutes: 180
-  }
-
-  output {
-    File output_vcf = "clinvar_fixed.vcf.gz"
-    File output_vcf_index = "clinvar_fixed.vcf.gz.csi"
-  }
-} 
-
-##############################
+#### TODO: replace with vcfTasks.AnnotateWithClinVarVCF
 task AnnotateWithVCF {
   input {
     # Command parameters

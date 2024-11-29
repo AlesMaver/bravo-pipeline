@@ -1,0 +1,25 @@
+{
+  "vcfAnnotate.input_vcf": "/absPath/input.vcf.gz",
+  "vcfAnnotate.input_vcf_index": "/absPath/input.vcf.gz.tbi",
+  "vcfAnnotate.interval_list": "/absPath/wgs_calling_regions.hg38.interval_list",
+  "vcfAnnotate.thinning_parameter": 1,
+  "vcfAnnotate.scatter_region_size": 300000,
+  "vcfAnnotate.threads": 4,
+  "vcfAnnotate.annotate_with_clinvar": "true",
+  "vcfAnnotate.annotate_with_dbnsfp": "true",
+  "vcfAnnotate.annotate_with_alphamissense": "true",
+  "vcfAnnotate.annotate_with_loftee": "true",
+  "vcfAnnotate.vep_ref": {
+    "cache_dir": "/absPath/VEP113_0",
+    "plugins_dir": "/absPath/VEP_plugins",
+    "dbNSFP_vcf": "/absPath/VEP_plugins_data/dbNSFP4.9a/dbNSFP4.9a_grch38.gz",
+    "dbNSFP_vcf_index": "/absPath/VEP_plugins_data/dbNSFP4.9a/dbNSFP4.9a_grch38.gz.tbi",
+    "dbNSFP_vcf_readme": "/absPath/VEP_plugins_data/dbNSFP4.9a/dbNSFP4.9a.readme.txt",
+    "loftee_data_dir": "/absPath/VEP_plugins_data/lofteeGRCh38_data",
+    "AlphaMissense_data_dir": "/absPath/VEP_plugins_data/AlphaMissense"
+  },
+  "vcfAnnotate.annotation_fields": {
+      "ClinVar": "CLNDN,CLNDNINCL,CLNDISDB,CLNDISDBINCL,CLNHGVS,CLNREVSTAT,CLNSIG,CLNSIGCONF,CLNSIGINCL,CLNVC,CLNVCSO,CLNVI,DBVARID,GENEINFO,MC,ORIGIN,RS",
+      "dbNSFP": "1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate,MetaRNN_score,MetaRNN_rankscore,MetaRNN_pred,REVEL_score,REVEL_rankscore,Aloft_prob_Tolerant,Aloft_prob_Recessive,Aloft_prob_Dominant,Aloft_pred,Aloft_Confidence,gnomAD_exomes_AC,gnomAD_exomes_nhomalt,gnomAD_exomes_POPMAX_AC,gnomAD_exomes_POPMAX_AF,gnomAD_exomes_POPMAX_nhomalt,gnomAD_exomes_NFE_AC,gnomAD_exomes_NFE_nhomalt,gnomAD_genomes_AC,gnomAD_genomes_AF,gnomAD_genomes_nhomalt,gnomAD_genomes_POPMAX_AC,gnomAD_genomes_POPMAX_AF,gnomAD_genomes_POPMAX_nhomalt,gnomAD_genomes_NFE_AC,gnomAD_genomes_NFE_AF,gnomAD_genomes_NFE_nhomalt"
+  }
+}

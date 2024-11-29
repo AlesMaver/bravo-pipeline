@@ -5,22 +5,18 @@
 ## - normalize VCF (left-align and normalize indels, check if REF alleles match the reference, split multiallelic sites into biallelic -m-any),
 ## - filter/annotate (+setGT ./. GQ<20, annotate PGT & PID, --types snps,indels, +fill-tags, include F_MISSING<..., exclude AC=0, include QUAL>100)
 ## - merge resulting VCFs
+## - sort VCF (needed after normalization)
 
 version 1.0
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
-import "./VEP.wdl" as VEP
-
-#struct VcfAndIndex {
-#  File vcf
-#  File vcf_index
-#}
 
 workflow vcfNormFilterMerge {
   input {
  #   Array [VcfAndIndex] input_vcfAndInds
     Array [File] input_vcfs
+    Array [File] input_vcfs_index
 
     File interval_list
     Int? thinning_parameter
@@ -31,9 +27,9 @@ workflow vcfNormFilterMerge {
 
     # Reference FASTA file - hg37/38
     File referenceFasta
-    Int threads = 5
+    Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
 
-    # Filter
+    # Options
     Float F_MISSING_upper_bounds = 1
 
     # Output
@@ -54,11 +50,12 @@ workflow vcfNormFilterMerge {
 
   scatter (region in SplitRegions.scatter_regions) {
 
-    scatter (input_vcf in input_vcfs) {
+    scatter (idx in range(length(input_vcfs))) {
 
       call vcfTasks.VCFsplitSubset {
         input:
-          input_vcf = input_vcf,
+          input_vcf = input_vcfs[idx],
+          input_vcf_index = input_vcfs_index[idx],
           samplesFile = samplesFile,
           region = region,
           threads = threads
@@ -90,22 +87,33 @@ workflow vcfNormFilterMerge {
         threads = threads
     }
 
+    # pre-sort per region to speed-up final sort
+    call vcfTasks.sortVcf as sortVcfPerRegion {
+      input:
+        input_vcf = VCFmerge.output_vcf,
+        input_vcf_index = VCFmerge.output_vcf_index,
+        output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,,
+        threads = threads
+    }    
+
   } # Close per region scatter
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = VCFmerge.output_vcf,
-      input_vcfs_indices = VCFmerge.output_vcf_index,
+      input_vcfs = sortVcfPerRegion.output_vcf,
+      input_vcfs_indices = sortVcfPerRegion.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
 
+  # final sort, scaled for largemem partition @ Vega
   call vcfTasks.sortVcf {
     input:
       input_vcf = concatVcf.output_vcf,
       input_vcf_index = concatVcf.output_vcf_index,
       output_name = output_vcf_basename,
-      threads = threads
+      threads = threads,
+      memory_mb_per_core = 8000
   }
 
   output {

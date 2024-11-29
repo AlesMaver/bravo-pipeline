@@ -1,10 +1,11 @@
 {
   "vcfNormFilterMerge.input_vcfs": ["input1.vcf.gz", "input2.vcf.gz"],
+  "vcfNormFilterMerge.input_vcfs_index": ["input1.vcf.gz.tbi", "input2.vcf.gz.tbi"],
   "vcfNormFilterMerge.interval_list": "wgs_calling_regions.hg38.interval_list",
   "vcfNormFilterMerge.scatter_region_size": 1000000,
   "vcfNormFilterMerge.samplesFile": "cohort.samples.txt",
   "vcfNormFilterMerge.referenceFasta": "Homo_sapiens_assembly38.fasta",
-  "vcfNormFilterMerge.threads": 5,
+  "vcfNormFilterMerge.threads": 4,
   "vcfNormFilterMerge.F_MISSING_upper_bounds": 0.1,
-  "vcfNormFilterMerge.output_vcf_basename": "output_fltNorm"
+  "vcfNormFilterMerge.output_vcf_basename": "output_nrmFltMrg"
 }

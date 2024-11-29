@@ -7,6 +7,7 @@ import "./vcfTasks.wdl" as vcfTasks
 workflow vcfMerge {
   input {
     Array [File] input_vcfs
+    Array [File] input_vcfs_index
 
     File interval_list
     Int? thinning_parameter
@@ -28,14 +29,24 @@ workflow vcfMerge {
       scatter_region_size = scatter_region_size
   }
 
+  scatter (input_vcf in input_vcfs) {
+
+    call vcfTasks.VCFindex {
+      input:
+        input_vcf = input_vcf,
+        threads = threads
+    }
+
+  } # Close per input vcf scatter
+
   scatter (chromosome in SplitRegions.scatter_regions ) {
 
-    scatter (input_vcf in input_vcfs) {
+    scatter (input_vcf in VCFindex.output_vcf) {
       
       call vcfTasks.VCFsplitSubset {
         input:
           input_vcf = input_vcf,
-          #input_vcf_index = basename(input_vcf, ".vcf.gz") + ".vcf.gz.tbi",
+          input_vcf_index = basename(input_vcf, ".vcf.gz") + ".vcf.gz.tbi",
           chromosome = chromosome,
           threads = threads
       }
@@ -45,6 +56,7 @@ workflow vcfMerge {
     call vcfTasks.VCFmerge {
       input:
         input_vcfs = VCFsplitSubset.output_vcf,
+        input_vcfs_indices = VCFsplitSubset.output_vcf_index,
         output_name = output_vcf_basename
         threads = threads
     }
