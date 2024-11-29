@@ -104,12 +104,21 @@ workflow vcfAnnotate {
         output_basename = sub(sub(region, "-", "_"), ":", "__") + ".anVEP." + output_vcf_basename
       }
 
+    # sort after VEP to avoid indexing error after concat, e.g.:
+    #  [E::hts_idx_push] Unsorted positions on sequence #9: 133220600 followed by 133220598
+    call vcfTasks.sortVcf {
+      input:
+        input_vcf = VEP.output_vcf,
+        input_vcf_index = VEP.output_vcf_index,
+        output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,
+        threads = threads
+    }    
   } # Close scatter region
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = VEP.output_vcf,
-      input_vcfs_indices = VEP.output_vcf_index,
+      input_vcfs = sortVcf.output_vcf,
+      input_vcfs_indices = sortVcf.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
@@ -200,11 +209,15 @@ task VEP {
     String assembly = "GRCh38"
     Int buffer_size = 5000
     Boolean annotate_with_dbnsfp = true
-    Boolean annotate_with_alphamissense = true
     Boolean annotate_with_loftee = true
+    Boolean annotate_with_alphamissense = true
     String? annotation_fields
     String output_basename = basename(input_vcf, ".vcf.gz")
   }
+
+  String arg_dbnsfp = if annotate_with_dbnsfp && defined(annotation_fields) then '--plugin dbNSFP,' + vep_ref.dbNSFP_vcf + ',' + annotation_fields else ''
+  String arg_loftee = if annotate_with_loftee then '--plugin LoF,loftee_path:' + vep_ref.plugins_dir + ',human_ancestor_fa:' + vep_ref.loftee_data_dir + '/human_ancestor.fa.gz,conservation_file:' + vep_ref.loftee_data_dir + '/loftee.sql,gerp_bigwig:' + vep_ref.loftee_data_dir + '/gerp_conservation_scores.homo_sapiens.GRCh38.bw' else ''
+  String arg_am = if annotate_with_alphamissense then '--plugin AlphaMissense,file=' + vep_ref.AlphaMissense_data_dir + '/AlphaMissense_hg38.tsv.gz' else ''
 
   command <<<
     vep -i ~{input_vcf} \
@@ -218,9 +231,9 @@ task VEP {
       --nearest symbol \
       --no_stats \
       --dir_plugins ~{vep_ref.plugins_dir} \
-      --plugin dbNSFP,~{vep_ref.dbNSFP_vcf},~{annotation_fields} \
-      --plugin LoF,loftee_path:~{vep_ref.plugins_dir},human_ancestor_fa:~{vep_ref.loftee_data_dir}/human_ancestor.fa.gz,conservation_file:~{vep_ref.loftee_data_dir}/loftee.sql,gerp_bigwig:~{vep_ref.loftee_data_dir}/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
-      --plugin AlphaMissense,file=~{vep_ref.AlphaMissense_data_dir}/AlphaMissense_hg38.tsv.gz \
+      ~{arg_dbnsfp} \
+      ~{arg_loftee} \
+      ~{arg_am} \
       --buffer_size ~{buffer_size}
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
