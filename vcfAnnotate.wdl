@@ -106,7 +106,7 @@ workflow vcfAnnotate {
 
     # sort after VEP to avoid indexing error after concat, e.g.:
     #  [E::hts_idx_push] Unsorted positions on sequence #9: 133220600 followed by 133220598
-    call vcfTasks.sortVcf {
+    call vcfTasks.sortIdxVcf {
       input:
         input_vcf = VEP.output_vcf,
         input_vcf_index = VEP.output_vcf_index,
@@ -114,18 +114,18 @@ workflow vcfAnnotate {
         threads = threads
     }
 
-    call vcfTasks.VCFindex as sortVcf_index {
-      input:
-        input_vcf = sortVcf.output_vcf,
-        threads = threads
-    }
+#    call vcfTasks.VCFindex as sortVcf_index {
+#      input:
+#        input_vcf = sortVcf.output_vcf,
+#        threads = threads
+#    }
 
   } # Close scatter region
 
   call vcfTasks.concatVcf {
     input:
-      input_vcfs = sortVcf.output_vcf,
-      input_vcfs_indices = sortVcf_index.output_vcf_index,
+      input_vcfs = sortIdxVcf.output_vcf,
+      input_vcfs_indices = sortIdxVcf.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
