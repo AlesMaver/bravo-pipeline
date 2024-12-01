@@ -114,7 +114,7 @@ task VCFindex {
   }
 
   command {
-    bcftools index -t ~{input_vcf} --threads ~{threads}
+    bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
   }
 
   runtime {
