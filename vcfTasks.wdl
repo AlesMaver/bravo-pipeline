@@ -377,7 +377,6 @@ task sortVcf {
     mkdir $PWD/sort_tmp
     bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G"
   >>>
-    #bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
 
   runtime {
     docker: "dceoy/bcftools"
@@ -387,7 +386,39 @@ task sortVcf {
   }
   output {
     File output_vcf = "~{output_name}.vcf.gz"
-    #File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+##############################
+## bcftools norm can affect the order of variants in a VCF file; thus we need to sort
+## mem can be scaled for largemem partition @ Vega by setting memory_mb_per_core = 8000 
+## we do not use --temp-dir because we want to use /scratch/slurm/$SLURM_JOB_ID @ Vega
+## Note that we do not index here due to time limits of individual tasks
+task sortIdxVcf {
+    input {
+      File input_vcf
+      File input_vcf_index
+      String output_name
+      Int threads
+      Int memory_mb_per_core = 2000
+    }
+  
+  command <<<
+    set -e
+    mkdir $PWD/sort_tmp
+    bcftools sort ~{input_vcf} -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G"
+    bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
+  >>>
+
+  runtime {
+    docker: "dceoy/bcftools"
+    requested_memory_mb_per_core: memory_mb_per_core
+    cpu: threads
+    #runtime_minutes: 2880
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
   }
 }
 
