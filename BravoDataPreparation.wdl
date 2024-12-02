@@ -42,9 +42,6 @@ workflow BravoDataPreparation {
 
     # Remove reported variants
     File reported_variants
-
-    # Filter
-    Float F_MISSING_upper_bounds = 1
   }
 
   call vcfTasks.ConvertIntervalListToBed {
@@ -59,20 +56,20 @@ workflow BravoDataPreparation {
       scatter_region_size = scatter_region_size
   }
 
-  scatter (chromosome in SplitRegions.scatter_regions ) {
-  	call vcfTasks.VCFsplitter {
-  		input:
-  			input_vcf = input_vcf,
-  			input_vcf_index = input_vcf_index,
+  scatter (region in SplitRegions.scatter_regions ) {
+
+    call vcfTasks.VCFsplitSubset {
+      input:
+        input_vcf = input_vcf,
+        input_vcf_index = input_vcf_index,
         samplesFile = samplesFile,
-  			chromosome = chromosome,
-        referenceFasta = referenceFasta,
+        region = region,
         threads = threads
-  	}
+    }
 
     call vcfTasks.RemoveReportedVariants {
       input:
-        input_vcf = VCFsplitter.output_vcf,
+        input_vcf = VCFsplitSubset.output_vcf,
         reported_variants = reported_variants,
         threads = threads
     }
@@ -81,18 +78,8 @@ workflow BravoDataPreparation {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
         input_vcf_index = RemoveReportedVariants.output_vcf_index,
-        chromosome = chromosome,
         threads = threads
     }
-
-## not needed
-#     call vcfTasks.VCFfilter {
-#  		input:
-#  			input_vcf = VCFfillTags.output_vcf,
-#        input_vcf_index = VCFfillTags.output_vcf_index,
-#        threads = threads,
-#        F_MISSING_upper_bounds = F_MISSING_upper_bounds
-#  	}
 
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
   		input:
@@ -110,9 +97,9 @@ workflow BravoDataPreparation {
     if (generate_crams) {
       call cramPreparation.prepareCram as prepareCRAMs {
         input:
-          chromosome = chromosome,
-          chromosomeVCF = VCFsplitter.output_vcf,
-          chromosomeVCFIndex = VCFsplitter.output_vcf_index,
+          chromosome = region,
+          chromosomeVCF = VCFsplitSubset.output_vcf,
+          chromosomeVCFIndex = VCFsplitSubset.output_vcf_index,
           samplesFile = samplesFile,
           referenceFasta = referenceFasta,
           sampleLocationPath = sampleLocationPath,
@@ -121,10 +108,10 @@ workflow BravoDataPreparation {
       }
 
     }
-  } # Close per chromosome scatter
+  } # Close per region scatter
 
   # Concatenate VCFs with removed reported variants
-  call vcfTasks.concatVcf as concatVcf_RemoveReportedVariants {
+  call vcfTasks.concatIdxVcf as concatIdxVcf_RemoveReportedVariants {
     input:
       input_vcfs = VCFfillTags.output_vcf,
       input_vcfs_indices = VCFfillTags.output_vcf_index,
@@ -132,24 +119,12 @@ workflow BravoDataPreparation {
       threads = threads
   }
 
-  call vcfTasks.VCFindex as concatVcf_RemoveReportedVariants_index {
-    input:
-      input_vcf = concatVcf_RemoveReportedVariants.output_vcf,
-      threads = threads
-  }
-
-  # Concatenate VCFs from prepare percentiles task (annotated with VEP)
-  call vcfTasks.concatVcf {
+  # Concatenate VCFs (annotated with VEP) from prepare percentiles task
+  call vcfTasks.concatIdxVcf {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
       input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
       output_name = "output",
-      threads = threads
-  }
-
-  call vcfTasks.VCFindex {
-    input:
-      input_vcf = concatVcf.output_vcf,
       threads = threads
   }
 
@@ -159,7 +134,6 @@ workflow BravoDataPreparation {
         input:
           input_crams = select_all(prepareCRAMs.combined_cram_result),
           input_cram_indices = select_all(prepareCRAMs.combined_cram_result_index),
-
           chromosome = chromosome,
           referenceFasta = referenceFasta
       }
@@ -167,19 +141,20 @@ workflow BravoDataPreparation {
   }
 
   scatter (field in infoFields) {
-      call vcfPercentilesPreparation.computePercentiles as computePercentiles {
-          input: chromosomeVCF = concatVcf.output_vcf,
-              infoField = field,
-              threads = threads,
-              numberPercentiles = numberPercentiles,
-              description = description
-      }
+    call vcfPercentilesPreparation.computePercentiles as computePercentiles {
+      input: 
+        chromosomeVCF = concatIdxVcf.output_vcf,
+        infoField = field,
+        threads = threads,
+        numberPercentiles = numberPercentiles,
+        description = description
+    }
   }
 
   call vcfPercentilesPreparation.addPercentiles as addPercentiles {
     input: 
-      chromosomeVCF = concatVcf.output_vcf,
-      chromosomeVCFIndex = VCFindex.output_vcf_index,
+      chromosomeVCF = concatIdxVcf.output_vcf,
+      chromosomeVCFIndex = concatIdxVcf.output_vcf_index,
       variantPercentiles = computePercentiles.outVariantPercentile,
       variantPercentilesIndex = computePercentiles.outVariantPercentileIndex,
       metricJSONs = computePercentiles.outAllPercentiles,
@@ -191,8 +166,8 @@ workflow BravoDataPreparation {
     File output_vcfs_indices = addPercentiles.out_index
     File output_metrics_json = addPercentiles.metrics_json
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
-    File RemoveReportedVariants_output_vcf = concatVcf_RemoveReportedVariants.output_vcf
-    File RemoveReportedVariants_output_vcf_index = concatVcf_RemoveReportedVariants_index.output_vcf_index
+    File RemoveReportedVariants_output_vcf = concatIdxVcf_RemoveReportedVariants.output_vcf
+    File RemoveReportedVariants_output_vcf_index = concatIdxVcf_RemoveReportedVariants.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
     Array[File]? out_crais = concatCrams.output_cram_index
   }

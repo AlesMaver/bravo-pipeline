@@ -73,6 +73,7 @@ task SplitRegions {
 }
 
 ##############################
+## DEPRECATED for VCFsplitSubset + VCFnorm
 ## bcftools view -r -t -S | norm -m-any -f ~{referenceFasta}
 task VCFsplitter {
   input {
@@ -284,7 +285,7 @@ task VCFmerge {
   >>>
 
   runtime {
-    docker: "peterjuv/bcftools"
+    docker: "alesmaver/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 10
@@ -331,7 +332,6 @@ task VCFfillTags {
   input {
     File input_vcf
     File input_vcf_index
-    String chromosome = "chromosome"
     Int threads
   }
 
