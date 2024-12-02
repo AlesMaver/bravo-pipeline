@@ -359,12 +359,12 @@ task VCFfillTags {
 ## DEPRECATED for concatIdxVcf
 ## Note that we do not index here due to time limits of individual tasks
 task concatVcf {
-    input {
-      Array[File] input_vcfs
-      Array[File] input_vcfs_indices
-      String output_name
-      Int threads
-    }
+  input {
+    Array[File] input_vcfs
+    Array[File] input_vcfs_indices
+    String output_name
+    Int threads
+  }
   
   command <<<
     set -e
@@ -385,12 +385,12 @@ task concatVcf {
 
 ##############################
 task concatIdxVcf {
-    input {
-      Array[File] input_vcfs
-      Array[File] input_vcfs_indices
-      String output_name
-      Int threads
-    }
+  input {
+    Array[File] input_vcfs
+    Array[File] input_vcfs_indices
+    String output_name
+    Int threads
+  }
   
   command <<<
     set -e
@@ -417,13 +417,13 @@ task concatIdxVcf {
 ## Note that we do not index here due to time limits of individual tasks
 ## CONSIDER using sortIdxVcf instead
 task sortVcf {
-    input {
-      File input_vcf
-      File input_vcf_index
-      String output_name
-      Int threads
-      Int memory_mb_per_core = 2000
-    }
+  input {
+    File input_vcf
+    File input_vcf_index
+    String output_name
+    Int threads
+    Int memory_mb_per_core = 2000
+  }
   
   command <<<
     set -e
@@ -447,13 +447,13 @@ task sortVcf {
 ## mem can be scaled for largemem partition @ Vega by setting memory_mb_per_core = 8000 
 ## we do not use --temp-dir because we want to use /scratch/slurm/$SLURM_JOB_ID @ Vega
 task sortIdxVcf {
-    input {
-      File input_vcf
-      File input_vcf_index
-      String output_name
-      Int threads
-      Int memory_mb_per_core = 2000
-    }
+  input {
+    File input_vcf
+    File input_vcf_index
+    String output_name
+    Int threads
+    Int memory_mb_per_core = 2000
+  }
   
   command <<<
     set -e
@@ -502,6 +502,31 @@ task concatSortIdxVcf {
   output {
     File output_vcf = "~{output_name}.vcf.gz"
     File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+
+##############################
+task VCFquerySamples {
+  input {
+    File input_vcf
+    File input_vcf_index
+    String output_name
+  }
+  
+  command <<<
+    set -e
+    bcftools query -l ~{input_vcf}  > ~{output_name}
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: 1
+    runtime_minutes: 10
+  }
+  output {
+    File out = ~{output_name}
   }
 }
 

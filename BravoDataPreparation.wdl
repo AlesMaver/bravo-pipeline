@@ -19,7 +19,7 @@ workflow BravoDataPreparation {
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
 
     # File for samples
-    File samplesFile
+    File? samplesFile
     # List of sampls and cram file locations for CRAM generation step
     String sampleLocationPath
     #File sampleLocationFile
@@ -44,6 +44,7 @@ workflow BravoDataPreparation {
     File reported_variants
   }
 
+
   call vcfTasks.ConvertIntervalListToBed {
     input:
       interval_list = interval_list
@@ -54,6 +55,17 @@ workflow BravoDataPreparation {
       input_bed = ConvertIntervalListToBed.converted_bed,
       thinning_parameter = thinning_parameter,
       scatter_region_size = scatter_region_size
+  }
+
+  if (!defined(samplesFile)) {
+    call vcfTasks.VCFquerySamples {
+      input:
+        input_vcf = input_vcf,
+        input_vcf_index = input_vcf_index,
+        samplesFile = samplesFile,
+        output_name = "samples_all.tab",
+        threads = threads        
+    }
   }
 
   scatter (region in SplitRegions.scatter_regions ) {
@@ -85,7 +97,7 @@ workflow BravoDataPreparation {
   		input:
         input_vcf = VCFfillTags.output_vcf,
         input_vcf_index = VCFfillTags.output_vcf_index,
-        samplesFile = samplesFile,
+        samplesFile = select_first([samplesFile, VCFquerySamples.out]),
         cadScores = cadScores,
         cadScoresIndex = cadScoresIndex,
         infoFields = infoFields,
@@ -100,10 +112,9 @@ workflow BravoDataPreparation {
           chromosome = region,
           chromosomeVCF = VCFsplitSubset.output_vcf,
           chromosomeVCFIndex = VCFsplitSubset.output_vcf_index,
-          samplesFile = samplesFile,
+          samplesFile = select_first([samplesFile, VCFquerySamples.out]),
           referenceFasta = referenceFasta,
           sampleLocationPath = sampleLocationPath,
-          #sampleLocationFile = sampleLocationFile
           threads = threads
       }
 
