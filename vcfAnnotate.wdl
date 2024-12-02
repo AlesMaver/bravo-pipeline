@@ -123,13 +123,13 @@ workflow vcfAnnotate {
 
   } # Close scatter region
 
-  call vcfTasks.concatIdxVcf {
-    input:
-      input_vcfs = sortIdxVcf.output_vcf,
-      input_vcfs_indices = sortIdxVcf.output_vcf_index,
-      output_name = output_vcf_basename,
-      threads = threads
-  }
+#  call vcfTasks.concatIdxVcf {
+#    input:
+#      input_vcfs = sortIdxVcf.output_vcf,
+#      input_vcfs_indices = sortIdxVcf.output_vcf_index,
+#      output_name = output_vcf_basename,
+#      threads = threads
+#  }
 
 #  call vcfTasks.VCFindex as concatVcf_index{
 #    input:
@@ -137,9 +137,18 @@ workflow vcfAnnotate {
 #      threads = threads
 #  }
 
+  call vcfTasks.concatSortIdxVcf {
+    input:
+      input_vcfs = sortIdxVcf.output_vcf,
+      input_vcfs_indices = sortIdxVcf.output_vcf_index,
+      output_name = output_vcf_basename,
+      threads = 2 * threads,
+      memory_mb_per_core = 8000
+  }
+
   output {
-    File output_vcf = concatIdxVcf.output_vcf
-    File output_vcfs_indices = concatIdxVcf.output_vcf_index
+    File output_vcf = concatSortIdxVcf.output_vcf
+    File output_vcfs_indices = concatSortIdxVcf.output_vcf_index
   }
 
 } # Close workflow

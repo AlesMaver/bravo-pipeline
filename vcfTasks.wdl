@@ -384,7 +384,6 @@ task concatVcf {
 }
 
 ##############################
-## Note that we do not index here due to time limits of individual tasks
 task concatIdxVcf {
     input {
       Array[File] input_vcfs
@@ -446,7 +445,6 @@ task sortVcf {
 ## bcftools norm can affect the order of variants in a VCF file; thus we need to sort
 ## mem can be scaled for largemem partition @ Vega by setting memory_mb_per_core = 8000 
 ## we do not use --temp-dir because we want to use /scratch/slurm/$SLURM_JOB_ID @ Vega
-## Note that we do not index here due to time limits of individual tasks
 task sortIdxVcf {
     input {
       File input_vcf
@@ -473,6 +471,36 @@ task sortIdxVcf {
     File output_vcf_index = "~{output_name}.vcf.gz.tbi"
   }
 }
+
+##############################
+task concatSortIdxVcf {
+    input {
+      Array[File] input_vcfs
+      Array[File] input_vcfs_indices
+      String output_name
+      Int threads
+      Int memory_mb_per_core = 2000
+    }
+  
+  command <<<
+    set -e
+    mkdir $PWD/sort_tmp
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} | \
+      bcftools sort -Oz -o ~{output_name}_concatSort.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G" --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    #runtime_minutes: >11h
+  }
+  output {
+    File output_vcf = "~{output_name}_concatSort.vcf.gz"
+    File output_vcf_index = "~{output_name}_concatSort.vcf.gz.tbi"
+  }
+}
+
 
 ##############################
 task concatCrams {
