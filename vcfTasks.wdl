@@ -281,7 +281,8 @@ task VCFmerge {
 
   command <<<
     set -e
-    bcftools merge --threads ~{threads} --force-samples -l ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+    bcftools merge --threads ~{threads} --force-samples -l ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
+    bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
   >>>
 
   runtime {
@@ -526,7 +527,7 @@ task VCFquerySamples {
     runtime_minutes: 10
   }
   output {
-    File out = ~{output_name}
+    File out = "~{output_name}"
   }
 }
 

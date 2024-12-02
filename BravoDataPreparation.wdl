@@ -62,9 +62,7 @@ workflow BravoDataPreparation {
       input:
         input_vcf = input_vcf,
         input_vcf_index = input_vcf_index,
-        samplesFile = samplesFile,
-        output_name = "samples_all.tab",
-        threads = threads        
+        output_name = "samples_all.tab"
     }
   }
 
