@@ -90,11 +90,11 @@ task VCFsplitter {
 
   command {
     set -e
-    bcftools view -r ~{chromosome} -t ~{chromosome} -S ~{samplesFile} ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{chromosome_filename}.~{vcf_basename}.vcf.gz --threads ~{threads}
+    bcftools view --threads ~{threads} -r ~{chromosome} -t ~{chromosome} -S ~{samplesFile} ~{input_vcf} | \
+      bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{chromosome_filename}.~{vcf_basename}.vcf.gz --write-index=tbi
   }
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 60
@@ -215,13 +215,13 @@ task VCFfilter {
 
   command {
     set -e
-    bcftools view ~{input_vcf} | \
-      bcftools +setGT -- -t q -n . -i 'FORMAT/GQ<20' | \
-      bcftools annotate -x FORMAT/PGT,FORMAT/PID | \
-      bcftools view --types snps,indels | \
-      bcftools +fill-tags | \
-      bcftools view -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
-      bcftools filter -e 'INFO/AC=0' | \
+    bcftools view --threads ~{threads} ~{input_vcf} | \
+      bcftools +setGT --threads ~{threads} -- -t q -n . -i 'FORMAT/GQ<20' | \
+      bcftools annotate --threads ~{threads} -x FORMAT/PGT,FORMAT/PID | \
+      bcftools view --threads ~{threads} --types snps,indels | \
+      bcftools +fill-tags --threads ~{threads} | \
+      bcftools view --threads ~{threads} -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
+      bcftools filter --threads ~{threads} -e 'INFO/AC=0' | \
       bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz --write-index=tbi
   }
   runtime {
@@ -339,11 +339,11 @@ task VCFfillTags {
 
   command {
     set -e
-    zcat ~{input_vcf} | bcftools +fill-tags | bcftools view --threads ~{threads} -Oz -o ~{vcf_basename}_fillTags.vcf.gz
-    bcftools index  -t ~{vcf_basename}_fillTags.vcf.gz --threads ~{threads}
+    zcat ~{input_vcf} | bcftools +fill-tags --threads ~{threads} | bcftools view --threads ~{threads} -Oz -o ~{vcf_basename}_fillTags.vcf.gz --write-index=tbi
   }
+
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 60
@@ -356,6 +356,7 @@ task VCFfillTags {
 
 
 ##############################
+## DEPRECATED for concatIdxVcf
 ## Note that we do not index here due to time limits of individual tasks
 task concatVcf {
     input {
@@ -367,19 +368,18 @@ task concatVcf {
   
   command <<<
     set -e
-    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_concat.vcf.gz
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz
   >>>
-    #bcftools index -t ~{output_name}_concat.vcf.gz --threads ~{threads}
 
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
     #runtime_minutes: >11h
   }
   output {
-    File output_vcf = "~{output_name}_concat.vcf.gz"
-    #File output_vcf_index = "~{output_name}_concat.vcf.gz.tbi"
+    File output_vcf = "~{output_name}.vcf.gz"
+    #File output_vcf_index = "~{output_name}.vcf.gz.tbi"
   }
 }
 
@@ -394,7 +394,7 @@ task concatIdxVcf {
   
   command <<<
     set -e
-    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}_concat.vcf.gz --write-index=tbi
+    bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
   >>>
 
   runtime {
@@ -404,8 +404,8 @@ task concatIdxVcf {
     #runtime_minutes: >11h
   }
   output {
-    File output_vcf = "~{output_name}_concat.vcf.gz"
-    File output_vcf_index = "~{output_name}_concat.vcf.gz.tbi"
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
   }
 }
 
@@ -415,6 +415,7 @@ task concatIdxVcf {
 ## mem can be scaled for largemem partition @ Vega by setting memory_mb_per_core = 8000 
 ## we do not use --temp-dir because we want to use /scratch/slurm/$SLURM_JOB_ID @ Vega
 ## Note that we do not index here due to time limits of individual tasks
+## CONSIDER using sortIdxVcf instead
 task sortVcf {
     input {
       File input_vcf
@@ -431,7 +432,7 @@ task sortVcf {
   >>>
 
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: memory_mb_per_core
     cpu: threads
     #runtime_minutes: 2880
@@ -473,6 +474,9 @@ task sortIdxVcf {
 }
 
 ##############################
+## DEPRECATED for concatIdxVcf + sortIdxVcf
+## FOR TESTING PURPOSES
+## Note that sort is much slower than concat, thus makes sense to run these in separate tasks
 task concatSortIdxVcf {
     input {
       Array[File] input_vcfs
@@ -486,7 +490,7 @@ task concatSortIdxVcf {
     set -e
     mkdir $PWD/sort_tmp
     bcftools concat --threads ~{threads} -f ~{write_lines(input_vcfs)} | \
-      bcftools sort -Oz -o ~{output_name}_concatSort.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G" --write-index=tbi
+      bcftools sort -Oz -o ~{output_name}.vcf.gz --temp-dir $PWD/sort_tmp -m "~{memory_mb_per_core/1000*threads-1}G" --write-index=tbi
   >>>
 
   runtime {
@@ -496,8 +500,8 @@ task concatSortIdxVcf {
     #runtime_minutes: >11h
   }
   output {
-    File output_vcf = "~{output_name}_concatSort.vcf.gz"
-    File output_vcf_index = "~{output_name}_concatSort.vcf.gz.tbi"
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
   }
 }
 

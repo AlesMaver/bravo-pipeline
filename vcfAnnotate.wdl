@@ -156,7 +156,7 @@ task GetClinVarVCF {
   >>>
 
   runtime {
-    docker: "alesmaver/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 4
     runtime_minutes: 20
@@ -185,13 +185,11 @@ task AnnotateWithClinVarVCF {
 
   command <<<
     set -e
-    bcftools annotate -r ~{region} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o ~{output_basename}_ClinVar.vcf.gz
-    bcftools index -t ~{output_basename}_ClinVar.vcf.gz --threads ~{threads}
-
+    bcftools annotate --threads ~{threads} -r ~{region} -a ~{annotation_vcf} -c ~{annotation_fields} ~{input_vcf} -Oz -o ~{output_basename}_ClinVar.vcf.gz --write-index=tbi
   >>>
 
   runtime {
-    docker: "alesmaver/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: 2
     runtime_minutes: 10
