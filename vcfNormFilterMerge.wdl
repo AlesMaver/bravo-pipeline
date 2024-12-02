@@ -104,7 +104,7 @@ workflow vcfNormFilterMerge {
 
   } # Close per region scatter
 
-  call vcfTasks.concatVcf {
+  call vcfTasks.concatIdxVcf {
     input:
       input_vcfs = VCFmerge.output_vcf,
       input_vcfs_indices = VCFmerge.output_vcf_index,
@@ -112,31 +112,31 @@ workflow vcfNormFilterMerge {
       threads = threads
   }
 
-  call vcfTasks.VCFindex as concatVcf_index {
-    input:
-      input_vcf = concatVcf.output_vcf,
-      threads = threads
-  }
+#  call vcfTasks.VCFindex as concatVcf_index {
+#    input:
+#      input_vcf = concatVcf.output_vcf,
+#      threads = threads
+#  }
 
   # final sort, scaled for largemem partition @ Vega
-  call vcfTasks.sortVcf {
+  call vcfTasks.sortIdxVcf {
     input:
-      input_vcf = concatVcf.output_vcf,
-      input_vcf_index = concatVcf_index.output_vcf_index,
+      input_vcf = concatIdxVcf.output_vcf,
+      input_vcf_index = concatIdxVcf.output_vcf_index,
       output_name = output_vcf_basename,
       threads = 2 * threads,
       memory_mb_per_core = 8000
   }
 
-  call vcfTasks.VCFindex as sortVcf_index {
-    input:
-      input_vcf = sortVcf.output_vcf,
-      threads = threads
-  }
+#  call vcfTasks.VCFindex as sortVcf_index {
+#    input:
+#      input_vcf = sortVcf.output_vcf,
+#      threads = threads
+#  }
 
   output {
-    File output_vcf = sortVcf.output_vcf
-    File output_vcf_index = sortVcf_index.output_vcf_index
+    File output_vcf = sortIdxVcf.output_vcf
+    File output_vcf_index = sortIdxVcf.output_vcf_index
   }
 
 } # Close workflow

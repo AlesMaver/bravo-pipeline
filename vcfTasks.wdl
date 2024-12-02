@@ -177,13 +177,11 @@ task VCFsplitSubset {
 
   command {
     set -e
-    #bcftools index -t ~{input_vcf} --threads ~{threads}
-    bcftools view -r ~{region} -t ~{region} ~{"--force-samples -S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz
-    bcftools index -t ~{region_filename}.~{vcf_basename}.vcf.gz --threads ~{threads}
+    bcftools view -r ~{region} -t ~{region} ~{"--force-samples -S " + samplesFile} ~{input_vcf} --threads ~{threads} -Oz -o ~{region_filename}.~{vcf_basename}.vcf.gz --write-index=tbi
   }
 
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 360
@@ -224,11 +222,10 @@ task VCFfilter {
       bcftools +fill-tags | \
       bcftools view -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
       bcftools filter -e 'INFO/AC=0' | \
-      bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz
-    bcftools index -t ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz --threads ~{threads}
+      bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz --write-index=tbi
   }
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 120
@@ -255,11 +252,10 @@ task VCFnorm {
 
   command {
     set -e
-    bcftools view ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{vcf_basename}_norm.vcf.gz
-    bcftools index -t ~{vcf_basename}_norm.vcf.gz --threads ~{threads}
+    bcftools view ~{input_vcf} | bcftools norm -m-any -f ~{referenceFasta} --threads ~{threads} -Oz -o ~{vcf_basename}_norm.vcf.gz --write-index=tbi
   }
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 10
@@ -284,12 +280,11 @@ task VCFmerge {
 
   command <<<
     set -e
-    bcftools merge --threads ~{threads} --force-samples -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz
-    bcftools index -t ~{output_name}.vcf.gz --threads ~{threads}
+    bcftools merge --threads ~{threads} --force-samples -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz --write-index=tbi
   >>>
 
   runtime {
-    docker: "dceoy/bcftools"
+    docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 10
