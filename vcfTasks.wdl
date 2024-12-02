@@ -280,7 +280,7 @@ task VCFmerge {
 
   command <<<
     set -e
-    bcftools merge --threads ~{threads} --force-samples -Oz -l ~{write_lines(input_vcfs)} > ~{output_name}.vcf.gz --write-index=tbi
+    bcftools merge --threads ~{threads} --force-samples -l ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
   >>>
 
   runtime {
