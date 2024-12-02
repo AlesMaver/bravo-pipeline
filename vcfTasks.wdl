@@ -113,20 +113,26 @@ task VCFindex {
     Int threads
   }
 
+  String vcf_basename = basename(input_vcf)
+
+    #bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
   command {
-    bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
+    tabix --force --preset vcf ~{input_vcf}
+    ln ~{input_vcf}.tbi ~{vcf_basename}.tbi
   }
 
   runtime {
-    docker: "dceoy/bcftools"
-    requested_memory_mb_per_core: 1000
+    #docker: "dceoy/bcftools"
+    docker: "ensemblorg/ensembl-vep:latest"
+    requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 360
   }
 
   output {
     File output_vcf = input_vcf
-    File output_vcf_index = input_vcf + ".tbi"
+    #File output_vcf_index = input_vcf + ".tbi"
+    File output_vcf_index = vcf_basename + ".tbi"
   }
 }
 
