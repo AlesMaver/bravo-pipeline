@@ -106,7 +106,8 @@ task VCFsplitter {
 }
 
 ##############################
-task VCFindex {
+## DEPRECATED for VCFindex
+task VCFtabix {
   input {
     # Command parameters
     File input_vcf
@@ -115,14 +116,12 @@ task VCFindex {
 
   String vcf_basename = basename(input_vcf)
 
-    #bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
   command {
     tabix --force --preset vcf ~{input_vcf}
     ln ~{input_vcf}.tbi ~{vcf_basename}.tbi
   }
 
   runtime {
-    #docker: "dceoy/bcftools"
     docker: "ensemblorg/ensembl-vep:latest"
     requested_memory_mb_per_core: 2000
     cpu: threads
@@ -131,10 +130,35 @@ task VCFindex {
 
   output {
     File output_vcf = input_vcf
-    #File output_vcf_index = input_vcf + ".tbi"
     File output_vcf_index = vcf_basename + ".tbi"
   }
 }
+
+##############################
+task VCFindex {
+  input {
+    # Command parameters
+    File input_vcf
+    Int threads
+  }
+
+  command {
+    bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
+  }
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    runtime_minutes: 360
+  }
+
+  output {
+    File output_vcf = input_vcf
+    File output_vcf_index = input_vcf + ".tbi"
+  }
+}
+
 
 ##############################
 ## bcftools view -r -t -S --force-samples

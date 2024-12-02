@@ -106,6 +106,7 @@ workflow vcfAnnotate {
 
     # sort after VEP to avoid indexing error after concat, e.g.:
     #  [E::hts_idx_push] Unsorted positions on sequence #9: 133220600 followed by 133220598
+    # TODO: REMOVE, NOT NEEDED, WE STILL GET THE SAME ERROR
     call vcfTasks.sortIdxVcf {
       input:
         input_vcf = VEP.output_vcf,
