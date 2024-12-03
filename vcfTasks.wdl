@@ -286,7 +286,8 @@ task VCFmerge {
   >>>
 
   runtime {
-    docker: "alesmaver/bcftools"
+    # bcftools v1.21 causes segmentation fault, thus we use v.1.20 here
+    docker: "peterjuv/bcftools:v.1.20"
     requested_memory_mb_per_core: 1000
     cpu: threads
     runtime_minutes: 10
@@ -527,7 +528,7 @@ task VCFquerySamples {
     runtime_minutes: 10
   }
   output {
-    File out = "~{output_name}"
+    File out = "~{output_name}.tab"
   }
 }
 

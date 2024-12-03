@@ -25,8 +25,6 @@ workflow prepareVCFPercentiles {
         File cadScores
         File cadScoresIndex
 
-        ### Prepare percentiles ###
-        Array[String] infoFields
         Int threads = 4
         Int numberPercentiles = 10
         String description = "Description"

@@ -18,11 +18,10 @@ workflow BravoDataPreparation {
 
     Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
 
-    # File for samples
+    # File for sample names
     File? samplesFile
-    # List of sampls and cram file locations for CRAM generation step
+    # Cram/crai file locations for CRAM generation step
     String sampleLocationPath
-    #File sampleLocationFile
     
     # Generate CRAMs optionally (if only update of the frequencies is needed)
     Boolean generate_crams = true
@@ -44,6 +43,7 @@ workflow BravoDataPreparation {
     File reported_variants
   }
 
+  String vcf_basename = basename(input_vcf, ".vcf.gz") 
 
   call vcfTasks.ConvertIntervalListToBed {
     input:
@@ -62,7 +62,7 @@ workflow BravoDataPreparation {
       input:
         input_vcf = input_vcf,
         input_vcf_index = input_vcf_index,
-        output_name = "samples_all.tab"
+        output_name = vcf_basename + "_smplNames"
     }
   }
 
@@ -98,7 +98,6 @@ workflow BravoDataPreparation {
         samplesFile = select_first([samplesFile, VCFquerySamples.out]),
         cadScores = cadScores,
         cadScoresIndex = cadScoresIndex,
-        infoFields = infoFields,
         threads = threads,
         numberPercentiles = numberPercentiles,
         description = description
@@ -124,7 +123,7 @@ workflow BravoDataPreparation {
     input:
       input_vcfs = VCFfillTags.output_vcf,
       input_vcfs_indices = VCFfillTags.output_vcf_index,
-      output_name = basename(input_vcf, ".vcf.gz"),
+      output_name = vcf_basename + "_repVarRem",
       threads = threads
   }
 
@@ -133,7 +132,7 @@ workflow BravoDataPreparation {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
       input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
-      output_name = "output",
+      output_name = vcf_basename + "_repVarRem_annotated",
       threads = threads
   }
 
