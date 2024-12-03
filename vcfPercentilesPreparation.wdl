@@ -234,7 +234,6 @@ task computeAlleleCountsAndHistograms {
 #        #docker: "ensemblorg/ensembl-vep:release_106.1"
 #        docker: "alesmaver/vep:testing"
 #        cpu: forks # "1" # changed in order to increase memory, see https://github.com/Ensembl/ensembl-vep/issues/150
-#        bootDiskSizeGb: "150"
 #        runtime_minutes: 60
 #    }
 #
@@ -258,7 +257,6 @@ task addCaddScores {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "2"
-        bootDiskSizeGb: "150"
         runtime_minutes: 10
     }
 }
@@ -291,7 +289,6 @@ task computePercentiles {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: threads
-        bootDiskSizeGb: "150"
         runtime_minutes: 120
     }
 }
@@ -343,7 +340,6 @@ task addPercentiles {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "2"
-        bootDiskSizeGb: "150"
         #runtime_minutes: >3h
     }
 

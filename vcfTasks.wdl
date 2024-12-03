@@ -25,7 +25,7 @@ task ConvertIntervalListToBed {
   runtime {
     docker: "broadinstitute/picard:2.26.0"  # Use the appropriate Picard Docker image
     cpu: 4
-    memory: "8G"
+    requested_memory_mb_per_core: 2000
     runtime_minutes: 10
   }
 
@@ -61,7 +61,7 @@ task SplitRegions {
   runtime {
     docker: "pegi3s/bedtools"  # Use the appropriate Picard Docker image
     cpu: 4
-    memory: "8G"
+    requested_memory_mb_per_core: 2000
     runtime_minutes: 10
   }
 

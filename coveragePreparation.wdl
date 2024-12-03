@@ -74,7 +74,6 @@ task extractDepth {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "2"
-        bootDiskSizeGb: "50"
         runtime_minutes: 180
     }
 }
@@ -119,7 +118,6 @@ task aggrBasePair {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "4"
-        bootDiskSizeGb: "50"
         #runtime_minutes: >2day
     }
 }
