@@ -41,6 +41,9 @@ workflow BravoDataPreparation {
 
     # Remove reported variants
     File reported_variants
+
+    # VEP
+    VEPReferences vep_ref
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz") 
@@ -100,7 +103,8 @@ workflow BravoDataPreparation {
         cadScoresIndex = cadScoresIndex,
         threads = threads,
         numberPercentiles = numberPercentiles,
-        description = description
+        description = description,
+        vep_ref = vep_ref
     }
 
     if (generate_crams) {
