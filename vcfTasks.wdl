@@ -313,7 +313,7 @@ task RemoveReportedVariants {
     set -e
     wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/kigm-dev/removeReportedVariants.py
     python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
-    bcftools index -t ~{output_vcf_filename} --threads ~{threads}
+    #bcftools index -t ~{output_vcf_filename} --threads ~{threads}
   }
   runtime {
     docker: "amancevice/pandas"
@@ -323,7 +323,7 @@ task RemoveReportedVariants {
   }
   output {
     File output_vcf = "~{output_vcf_filename}"
-    File output_vcf_index = "~{output_vcf_filename}.tbi"
+    #File output_vcf_index = "~{output_vcf_filename}.tbi"
   }
 }
 

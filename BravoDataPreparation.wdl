@@ -87,10 +87,16 @@ workflow BravoDataPreparation {
         threads = threads
     }
 
+    call vcfTasks.VCFindex as RemoveReportedVariants_index{
+      input:
+        input_vcf = RemoveReportedVariants.output_vcf,
+        threads = threads
+    }
+
     call vcfTasks.VCFfillTags {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
-        input_vcf_index = RemoveReportedVariants.output_vcf_index,
+        input_vcf_index = RemoveReportedVariants_index.output_vcf_index,
         threads = threads
     }
 
@@ -124,7 +130,7 @@ workflow BravoDataPreparation {
   } # Close per region scatter
 
   # Concatenate VCFs with removed reported variants
-  call vcfTasks.concatIdxVcf as concatIdxVcf_RemoveReportedVariants {
+  call vcfTasks.concatIdxVcf as concatIdxVcf_repVarRem {
     input:
       input_vcfs = VCFfillTags.output_vcf,
       input_vcfs_indices = VCFfillTags.output_vcf_index,
@@ -180,8 +186,8 @@ workflow BravoDataPreparation {
     File output_vcfs_indices = addPercentiles.out_index
     File output_metrics_json = addPercentiles.metrics_json
     Array[File] out_metrics_file = computePercentiles.outAllPercentiles
-    File RemoveReportedVariants_output_vcf = concatIdxVcf_RemoveReportedVariants.output_vcf
-    File RemoveReportedVariants_output_vcf_index = concatIdxVcf_RemoveReportedVariants.output_vcf_index
+    File RemoveReportedVariants_output_vcf = concatIdxVcf_repVarRem.output_vcf
+    File RemoveReportedVariants_output_vcf_index = concatIdxVcf_repVarRem.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
     Array[File]? out_crais = concatCrams.output_cram_index
   }
