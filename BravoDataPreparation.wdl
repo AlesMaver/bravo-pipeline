@@ -1,5 +1,5 @@
 version 1.0
-## Copyright CMG@KIGM, Ales Maver
+## Copyright CMG@KIGM, Ales Maver, Peter Juvan
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks

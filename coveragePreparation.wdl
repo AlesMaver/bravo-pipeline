@@ -1,3 +1,6 @@
+version 1.0
+## Copyright CMG@KIGM, Ales Maver, Peter Juvan
+
 workflow prepareCoverage {
     # Might be the same files as samples for Cram Prep step?
     Array[File] inputCramFiles

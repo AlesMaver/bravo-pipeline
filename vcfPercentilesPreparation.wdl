@@ -329,7 +329,7 @@ task addPercentiles {
         sed 's/"Description_QD"/"QD: Variant confidence (Quality by Depth)"/g' | \
         sed 's/"Description_RAW_MQ"/"RAW_MQ: Raw data for RMS Mapping Quality (deprecated, use RAW_MQandDP instead)"/g' | \
         sed 's/"Description_BaseQRankSum"/"BaseQRankSum: Z-score from Wilcoxon rank sum test of Alt Vs. Ref base qualities"/g' | \
-        sed 's/"Description_MQRankSum"/"MQRankSum: Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities"/g' > metrics/metrics-fix.json
+        sed 's/"Description_MQRankSum"/"MQRankSum: Z-score from Wilcoxon rank sum test of Alt vs. Ref read mapping qualities"/g' > metrics/metrics-fix.json
     >>>
 
     output {
