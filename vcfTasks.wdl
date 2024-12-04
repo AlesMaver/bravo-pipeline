@@ -545,7 +545,7 @@ task VCFquerySamples {
   
   command <<<
     set -e
-    bcftools query -l ~{input_vcf}  > ~{output_name}
+    bcftools query -l ~{input_vcf}  > ~{output_name}.tab
   >>>
 
   runtime {
