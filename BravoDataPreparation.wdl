@@ -94,6 +94,7 @@ workflow BravoDataPreparation {
         threads = threads
     }
 
+    # compute allele counts & histograms, drop geno, annotate with VEP (+LoF) + CADD
   	call vcfPercentilesPreparation.prepareVCFPercentiles as prepareVCFs {
   		input:
         input_vcf = VCFfillTags.output_vcf,
@@ -131,12 +132,12 @@ workflow BravoDataPreparation {
       threads = threads
   }
 
-  # Concatenate VCFs (annotated with VEP) from prepare percentiles task
+  # Concatenate VCFs with removed reported variants, dropped geno & annotated
   call vcfTasks.concatIdxVcf {
     input:
       input_vcfs = prepareVCFs.output_annotated_vcf,
       input_vcfs_indices = prepareVCFs.output_annotated_vcf_index,
-      output_name = vcf_basename + "_repVarRem_annotated",
+      output_name = vcf_basename + "_repVarRem_droppedGeno_annotated",
       threads = threads
   }
 
@@ -163,6 +164,7 @@ workflow BravoDataPreparation {
     }
   }
 
+  # generate 'all' VCF: add percentiles to VCF with removed reported variants, dropped geno & annotated
   call vcfPercentilesPreparation.addPercentiles as addPercentiles {
     input: 
       chromosomeVCF = concatIdxVcf.output_vcf,

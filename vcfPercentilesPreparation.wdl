@@ -67,10 +67,18 @@ workflow prepareVCFPercentiles {
             threads = threads
     }
 
-    call vcfAnnotate.VEP {
+    call vcfTasks.VCFdropGeno {
         input: 
             input_vcf = VCFindex.output_vcf,
             input_vcf_index = VCFindex.output_vcf_index,
+            output_name = vcf_basename + "_droppedGeno",
+            threads = threads
+    }
+
+    call vcfAnnotate.VEP {
+        input: 
+            input_vcf = VCFdropGeno.output_vcf,
+            input_vcf_index = VCFdropGeno.output_vcf_index,
             cpus = if threads < 6 then 6 else threads,
             vep_ref = vep_ref,
             assembly = assembly,

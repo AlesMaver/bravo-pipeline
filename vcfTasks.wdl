@@ -288,7 +288,7 @@ task VCFmerge {
   runtime {
     # bcftools v1.21 causes segmentation fault, thus we use v.1.20 here
     docker: "peterjuv/bcftools:v.1.20"
-    requested_memory_mb_per_core: 1000
+    requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 10
   }
@@ -356,6 +356,33 @@ task VCFfillTags {
   }
 }
 
+##############################
+## bcftools -G to remove individual genotype information
+task VCFdropGeno {
+  input {
+    # Command parameters
+    File input_vcf
+    File input_vcf_index
+    String output_name
+    Int threads
+  }
+  
+  command <<<
+    set -e
+    bcftools view -G --threads ~{threads} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    #runtime_minutes: ?
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
 
 ##############################
 ## DEPRECATED for concatIdxVcf
