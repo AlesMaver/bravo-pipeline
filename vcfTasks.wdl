@@ -572,7 +572,7 @@ task read_lines_proportion {
   
   command <<<
     set -e
-    cat ~{in} | awk 'rand()<proprotion' proportion=~{proportion}
+    cat ~{in} | awk 'rand()<proportion' proportion=~{proportion}
   >>>
 
   runtime {
