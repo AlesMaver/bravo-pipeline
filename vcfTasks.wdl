@@ -312,11 +312,11 @@ task RemoveReportedVariants {
   command {
     set -e
     wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/kigm-dev/removeReportedVariants.py
-    python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
+    python3 removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
     #bcftools index -t ~{output_vcf_filename} --threads ~{threads}
   }
   runtime {
-    docker: "biopython/biopython"
+    docker: "pegi3s/biopython:latest"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 60
