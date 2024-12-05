@@ -548,7 +548,7 @@ task VCFquerySamples {
   
   command <<<
     set -e
-    bcftools query -l ~{input_vcf} | awk '{print prefix$1suffix}' prefix=~{prefix + "/"} suffix=~{".cram" + suffix} > ~{output_name}.tab
+    bcftools query -l ~{input_vcf} | awk '{print prefix$1suffix}' prefix=~{prefix + "/"} suffix=~{suffix} > ~{output_name}.tab
   >>>
 
   runtime {
