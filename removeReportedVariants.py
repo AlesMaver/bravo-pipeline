@@ -1,7 +1,7 @@
 ###########################
 # Modify the SGP VCF file to remove reported genotypes
 ###########################
-import gzip
+from Bio import bgzf
 import time
 import argparse
 import pandas as pd
@@ -24,7 +24,7 @@ empty_genotype_string = "./.:.:.:.:."
 variants_to_remove_hg38 = df["variant_unique_id_hg38"].tolist()
 start_time = time.time()
 
-with gzip.open(input_file, 'rt') as input_f, gzip.open(output_file, 'wt') as output_f:
+with bgzf.open(input_file, 'rt') as input_f, bgzf.open(output_file, 'wt') as output_f:
     # for _ in range(500000):
     #     _discard = input_f.readline()  # Read and discard the line
 
@@ -62,7 +62,7 @@ with gzip.open(input_file, 'rt') as input_f, gzip.open(output_file, 'wt') as out
             
             # Write data in chunks
             print("Writing data for chunk...")
-            _ = output_f.writelines(chunked_lines) # Redirect output to _ to prevent printing to console
+            _ = output_f.write(chunked_lines) # Redirect output to _ to prevent printing to console
             chunked_lines = []
 
             print("Continue searching for matches...")
@@ -81,5 +81,5 @@ with gzip.open(input_file, 'rt') as input_f, gzip.open(output_file, 'wt') as out
     
     # Write the final chunk
     print("Final chunk...")
-    _ = output_f.writelines(chunked_lines) # Redirect output to _ to prevent printing to console
+    _ = output_f.write(chunked_lines) # Redirect output to _ to prevent printing to console
     chunked_lines = []

@@ -18,20 +18,20 @@ workflow prepareCoverage {
     
     scatter (idx in range(length(inputCramFiles))) {
         call extractDepth {
-                input: 
-                    inputCramFile = inputCramFiles[idx],
-                    inputCraiFile = inputCraiFiles[idx],
-                    chromosome = chromosome,
-                    referenceFasta = referenceFasta,
-                    referenceFastaCache = referenceFastaCache
+            input: 
+                inputCramFile = inputCramFiles[idx],
+                inputCraiFile = inputCraiFiles[idx],
+                chromosome = chromosome,
+                referenceFasta = referenceFasta,
+                referenceFastaCache = referenceFastaCache
         }
     }
     
     call aggrBasePair {
-            input: 
-                inputFiles = extractDepth.outDepth,
-                inputIndices = extractDepth.outIndex,
-                chromosome = chromosome
+        input: 
+            inputFiles = extractDepth.outDepth,
+            inputIndices = extractDepth.outIndex,
+            chromosome = chromosome
         }
     
     output {
@@ -50,6 +50,7 @@ workflow prepareCoverage {
         }
 }
 
+###########################
 task extractDepth {
     input {    
         File inputCramFile
@@ -84,6 +85,7 @@ task extractDepth {
     }
 }
 
+###########################
 task aggrBasePair {
     input {    
         Array[File] inputFiles

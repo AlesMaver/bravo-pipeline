@@ -1,6 +1,11 @@
 {
+  "BravoCoveragePreparation.input_vcf": "merged.vcf.gz",
+  "BravoCoveragePreparation.input_vcf_index": "merged.vcf.gz.tbi",
+  "BravoCoveragePreparation.sampleLocationPath": "/absPathToCommonCramDirectory",
+  "BravoCoveragePreparation.proportion": 0.05,
   "BravoCoveragePreparation.inputCramFiles": ["/path_to_crams/SAMPLE1.cram", "/path_to_crams/SAMPLE2.cram", "/path_to_crams/SAMPLE3.cram"],
   "BravoCoveragePreparation.inputCraiFiles": ["/path_to_crams/SAMPLE1.cram.crai", "/path_to_crams/SAMPLE2.cram.crai", "/path_to_crams/SAMPLE3.cram.crai"],
+  "BravoCoveragePreparation.chromosomes": ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"],
   "BravoCoveragePreparation.referenceFasta": "Homo_sapiens_assembly38.fasta",
   "BravoCoveragePreparation.referenceFastaCache": "Homo_sapiens_assembly38.ref_cache.tar.gz"
 }

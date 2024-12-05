@@ -316,7 +316,7 @@ task RemoveReportedVariants {
     #bcftools index -t ~{output_vcf_filename} --threads ~{threads}
   }
   runtime {
-    docker: "amancevice/pandas"
+    docker: "biopython/biopython"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 60
@@ -576,7 +576,7 @@ task read_lines_proportion {
   >>>
 
   runtime {
-    docker: "peterjuv/bcftools"
+    docker: "bashell/alpine-bash:latest"
     requested_memory_mb_per_core: 2000
     cpu: 1
     runtime_minutes: 10

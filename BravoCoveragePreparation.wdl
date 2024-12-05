@@ -59,7 +59,6 @@ workflow BravoCoveragePreparation {
         in = VCFqueryCrais.out,
         proportion = proportion
     }
-
   }
 
   scatter (chromosome in chromosomes) {
