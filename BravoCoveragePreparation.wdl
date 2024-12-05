@@ -64,8 +64,10 @@ workflow BravoCoveragePreparation {
   scatter (chromosome in chromosomes) {
     call coveragePreparation.prepareCoverage {
       input: 
-        inputCramFiles = select_first([inputCramFiles,subsetCramFiles.out]),
-        inputCraiFiles = select_first([inputCraiFiles,subsetCraiFiles.out]),
+        #inputCramFiles = if (length(select_all(inputCramFiles)) > 0) then inputCramFiles else subsetCramFiles.out],
+        #inputCraiFiles = if (length(select_all(inputCraiFiles)) > 0) then inputCraiFiles else subsetCraiFiles.out],
+        inputCramFiles = select_first([subsetCramFiles.out, inputCramFiles]),
+        inputCraiFiles = select_first([subsetCraiFiles.out, inputCraiFiles]),
         chromosome = chromosome, 
         referenceFasta = referenceFasta,
         referenceFastaCache = referenceFastaCache
