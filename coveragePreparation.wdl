@@ -2,17 +2,19 @@ version 1.0
 ## Copyright CMG@KIGM, Ales Maver, Peter Juvan
 
 workflow prepareCoverage {
-    # Might be the same files as samples for Cram Prep step?
-    Array[File] inputCramFiles
-    Array[File] inputCraiFiles
+    input {
+        # Might be the same files as samples for Cram Prep step?
+        Array[File] inputCramFiles
+        Array[File] inputCraiFiles
 
-    # Chromosome name e.g. chr22
-    String chromosome
+        # Chromosome name e.g. chr22
+        String chromosome
 
-    # Reference FASTA file - hg37/hg38
-    File referenceFasta
-    # Get reference fasta cache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
-    File referenceFastaCache
+        # Reference FASTA file - hg37/hg38
+        File referenceFasta
+        # Get reference fasta cache using: wget https://storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.ref_cache.tar.gz
+        File referenceFastaCache
+    }
     
     scatter (idx in range(length(inputCramFiles))) {
         call extractDepth {
@@ -49,13 +51,14 @@ workflow prepareCoverage {
 }
 
 task extractDepth {
-    File inputCramFile
-    File inputCraiFile
-    String chromosome
-    File referenceFasta
-    File referenceFastaCache
-    String sample = basename(inputCramFile, ".bam")
-
+    input {    
+        File inputCramFile
+        File inputCraiFile
+        String chromosome
+        File referenceFasta
+        File referenceFastaCache
+        String sample = basename(inputCramFile, ".bam")
+    }
     command {
         #tar xzf ${referenceFastaCache}
         #export REF_PATH="$(pwd)/ref/cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s"
@@ -82,13 +85,14 @@ task extractDepth {
 }
 
 task aggrBasePair {
-    Array[File] inputFiles
-    Array[File] inputIndices
-    String chromosome
-    # Not splitting by BP for now
-    Int startBP = 0
-    Int endBP = 999999999
-
+    input {    
+        Array[File] inputFiles
+        Array[File] inputIndices
+        String chromosome
+        # Not splitting by BP for now
+        Int startBP = 0
+        Int endBP = 999999999
+    }
     command {
         # Filter out any empty files which may break the processing
         cat ${write_lines(inputFiles)} | xargs du | awk '$1>50' | cut -f 2 > files.txt

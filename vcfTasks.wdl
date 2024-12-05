@@ -536,16 +536,19 @@ task concatSortIdxVcf {
 
 
 ##############################
+## Get samples names from a VCF, optionally append prefix (path) and suffix (extension), and write to a file
 task VCFquerySamples {
   input {
     File input_vcf
     File input_vcf_index
+    String? prefix
+    String? suffix
     String output_name
   }
   
   command <<<
     set -e
-    bcftools query -l ~{input_vcf}  > ~{output_name}.tab
+    bcftools query -l ~{input_vcf} | awk '{print prefix$1suffix}' prefix=~{prefix + "/"} suffix=~{".cram" + suffix} > ~{output_name}.tab
   >>>
 
   runtime {
@@ -556,6 +559,30 @@ task VCFquerySamples {
   }
   output {
     File out = "~{output_name}.tab"
+  }
+}
+
+##############################
+## Read a non-random proportion of lines from input file
+task read_lines_proportion {
+  input {
+    File in
+    Float proportion
+  }
+  
+  command <<<
+    set -e
+    cat ~{in} | awk 'rand()<proprotion' proportion=~{proportion}
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: 1
+    runtime_minutes: 10
+  }
+  output {
+    Array[File] out = read_lines(stdout())
   }
 }
 

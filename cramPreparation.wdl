@@ -121,6 +121,6 @@ task prepareSequences {
         #cpu: "4"
         cpu: threads
         #continueOnReturnCode: true
-        runtime_minutes: 720
+        runtime_minutes: 360
     }
 }
