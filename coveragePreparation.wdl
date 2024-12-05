@@ -127,6 +127,6 @@ task aggrBasePair {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "4"
-        #runtime_minutes: >2day
+        runtime_minutes: 1440 # >2day
     }
 }
