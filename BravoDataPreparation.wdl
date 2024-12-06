@@ -87,16 +87,16 @@ workflow BravoDataPreparation {
         threads = threads
     }
 
-    call vcfTasks.VCFindex as RemoveReportedVariants_index{
-      input:
-        input_vcf = RemoveReportedVariants.output_vcf,
-        threads = threads
-    }
+#    call vcfTasks.VCFindex as RemoveReportedVariants_index{
+#      input:
+#        input_vcf = RemoveReportedVariants.output_vcf,
+#        threads = threads
+#    }
 
     call vcfTasks.VCFfillTags {
       input:
         input_vcf = RemoveReportedVariants.output_vcf,
-        input_vcf_index = RemoveReportedVariants_index.output_vcf_index,
+        input_vcf_index = RemoveReportedVariants.output_vcf_index,
         threads = threads
     }
 
