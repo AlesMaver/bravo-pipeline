@@ -52,7 +52,7 @@ with bgzf.open(input_file, 'rt') as input_f, bgzf.open(output_file, 'wt') as out
                         print(row[genotype_index])
                         row[genotype_index] = empty_genotype_string
 
-        output_line = '\t'.join(row) + '\n'
+        output_line = '\t'.join(row)
         chunked_lines.append(output_line)
         #_ = output_f.write(output_line) # Redirect output to _ to prevent printing to console
 
@@ -62,7 +62,7 @@ with bgzf.open(input_file, 'rt') as input_f, bgzf.open(output_file, 'wt') as out
             
             # Write data in chunks
             print("Writing data for chunk...")
-            _ = output_f.write(chunked_lines) # Redirect output to _ to prevent printing to console
+            _ = output_f.write('\n'.join(chunked_lines)) # Redirect output to _ to prevent printing to console
             chunked_lines = []
 
             print("Continue searching for matches...")
@@ -81,5 +81,5 @@ with bgzf.open(input_file, 'rt') as input_f, bgzf.open(output_file, 'wt') as out
     
     # Write the final chunk
     print("Final chunk...")
-    _ = output_f.write(chunked_lines) # Redirect output to _ to prevent printing to console
+    _ = output_f.write('\n'.join(chunked_lines)) # Redirect output to _ to prevent printing to console
     chunked_lines = []
