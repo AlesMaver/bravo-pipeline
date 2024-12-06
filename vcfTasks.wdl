@@ -319,7 +319,7 @@ task RemoveReportedVariants {
     docker: "peterjuv/bcftools"
     requested_memory_mb_per_core: 2000
     cpu: threads
-    runtime_minutes: 60
+    runtime_minutes: 120
   }
   output {
     File output_vcf = "~{output_vcf_filename}"
