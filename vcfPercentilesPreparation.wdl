@@ -348,7 +348,6 @@ task addPercentiles {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "2"
-        #runtime_minutes: >3h
+        runtime_minutes: 360
     }
-
 }
