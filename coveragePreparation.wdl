@@ -47,7 +47,7 @@ workflow prepareCoverage {
         File aggrBasePair_outPruneCov0_50_index = aggrBasePair.outPruneCov0_50_index
         File aggrBasePair_outPruneCov0_75_index = aggrBasePair.outPruneCov0_75_index
         File aggrBasePair_outPruneCov1_00_index = aggrBasePair.outPruneCov1_00_index        
-        }
+    }
 }
 
 ###########################
@@ -127,6 +127,6 @@ task aggrBasePair {
     runtime {
         docker: "statgen/bravo-pipeline:latest"
         cpu: "4"
-        runtime_minutes: 1440 # >2day
+        runtime_minutes: 2880 # 2days
     }
 }
