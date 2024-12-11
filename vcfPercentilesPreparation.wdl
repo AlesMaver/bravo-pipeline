@@ -173,7 +173,8 @@ task AddOriginalVCFAnnotations {
   >>>
 
   runtime {
-    docker: "peterjuv/bcftools"
+    # bcftools v1.21 causes segmentation fault, thus we use v.1.20 here
+    docker: "peterjuv/bcftools:v.1.20"
     requested_memory_mb_per_core: 2000
     cpu: threads
     runtime_minutes: 60
