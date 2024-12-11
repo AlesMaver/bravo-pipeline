@@ -143,8 +143,10 @@ task VCFindex {
     Int threads
   }
 
+  String vcf_basename = basename(input_vcf)
+
   command {
-    bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{input_vcf}.tbi
+    bcftools index -t ~{input_vcf} --threads ~{threads} -o $PWD/~{vcf_basename}.tbi
   }
 
   runtime {
@@ -156,7 +158,7 @@ task VCFindex {
 
   output {
     File output_vcf = input_vcf
-    File output_vcf_index = input_vcf + ".tbi"
+    File output_vcf_index = "~{vcf_basename}.tbi"
   }
 }
 
