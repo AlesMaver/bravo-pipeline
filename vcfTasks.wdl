@@ -371,7 +371,7 @@ task VCFdropGeno {
   
   command <<<
     set -e
-    bcftools view -G --threads ~{threads} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+    bcftools view ~{input_vcf} -G --threads ~{threads} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
   >>>
 
   runtime {
