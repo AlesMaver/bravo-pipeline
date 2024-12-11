@@ -42,13 +42,13 @@ workflow prepareVCFPercentiles {
             samplesFile = samplesFile
     }
 
-#    call AddOriginalVCFAnnotations {
-#        input:
-#            original_input_vcf = input_vcf,
-#            original_input_vcf_index = input_vcf_index,
-#            analysed_vcf = computeAlleleCountsAndHistograms.out,
-#            threads = threads
-#    }
+    call AddOriginalVCFAnnotations {
+        input:
+            original_input_vcf = input_vcf,
+            original_input_vcf_index = input_vcf_index,
+            analysed_vcf = computeAlleleCountsAndHistograms.out,
+            threads = threads
+    }
 
 #    call variantEffectPredictor {
 #        input: 
@@ -61,24 +61,24 @@ workflow prepareVCFPercentiles {
 #            forks = threads
 #    }
 
-    call vcfTasks.VCFindex {
-        input:
-            input_vcf = computeAlleleCountsAndHistograms.out,
-            threads = threads
-    }
+#    call vcfTasks.VCFindex {
+#        input:
+#            input_vcf = computeAlleleCountsAndHistograms.out,
+#            threads = threads
+#    }
 
-    call vcfTasks.VCFdropGeno {
-        input: 
-            input_vcf = computeAlleleCountsAndHistograms.out,
-            input_vcf_index = VCFindex.output_vcf_index,
-            output_name = vcf_basename + "_droppedGeno",
-            threads = threads
-    }
+#    call vcfTasks.VCFdropGeno {
+#        input: 
+#            input_vcf = computeAlleleCountsAndHistograms.out,
+#            input_vcf_index = VCFindex.output_vcf_index,
+#            output_name = vcf_basename + "_droppedGeno",
+#            threads = threads
+#    }
 
     call vcfAnnotate.VEP {
         input: 
-            input_vcf = VCFdropGeno.output_vcf,
-            input_vcf_index = VCFdropGeno.output_vcf_index,
+            input_vcf = AddOriginalVCFAnnotations.output_vcf,
+            input_vcf_index = AddOriginalVCFAnnotations.output_vcf_index,
             cpus = if threads < 6 then 6 else threads,
             vep_ref = vep_ref,
             assembly = assembly,
@@ -158,32 +158,31 @@ task computeAlleleCountsAndHistograms {
 }
 
 ## Generate table of variants for interpretation
-#task AddOriginalVCFAnnotations {
-#    input {
-#      File original_input_vcf
-#      File original_input_vcf_index
-#      File analysed_vcf
-#      Int threads
-#    }
-#  
-#  command <<<
-#  set -e
-#    bcftools index -t ~{analysed_vcf}
-#    bcftools annotate  --threads ~{threads} -a ~{original_input_vcf} -c +INFO ~{analysed_vcf} -Oz -o output.vcf.gz
-#    bcftools index -t output.vcf.gz
-#  >>>
-#
-#  runtime {
-#    docker: "dceoy/bcftools"
-#    requested_memory_mb_per_core: 2000
-#    cpu: threads
-#    runtime_minutes: 60
-#  }
-#  output {
-#    File output_vcf = "output.vcf.gz"
-#    File output_vcf_index = "output.vcf.gz.tbi"
-#  }
-#}
+task AddOriginalVCFAnnotations {
+    input {
+      File original_input_vcf
+      File original_input_vcf_index
+      File analysed_vcf
+      Int threads
+    }
+  
+  command <<<
+    set -e
+    bcftools index -t ~{analysed_vcf}
+    bcftools annotate  --threads ~{threads} -a ~{original_input_vcf} -c +INFO ~{analysed_vcf} -Oz -o output.vcf.gz --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    runtime_minutes: 60
+  }
+  output {
+    File output_vcf = "output.vcf.gz"
+    File output_vcf_index = "output.vcf.gz.tbi"
+  }
+}
 
 #task variantEffectPredictor {
 #    input {
