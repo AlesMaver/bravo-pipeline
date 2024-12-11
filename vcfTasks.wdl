@@ -107,12 +107,15 @@ task VCFsplitter {
 }
 
 ##############################
-## DEPRECATED for VCFindex
+## Alternative to VCFindex
+## For cases like the following: 
+##  Contig 'chr3' is not defined in the header. (Quick workaround: index the file with tabix.)
+##  Undefined tags in the header, cannot proceed in the sample subset mode.
 task VCFtabix {
   input {
     # Command parameters
     File input_vcf
-    Int threads
+    Int threads # not used, we keep it here to be consistent with inputs of task VCFindex
   }
 
   String vcf_basename = basename(input_vcf)
@@ -131,7 +134,7 @@ task VCFtabix {
 
   output {
     File output_vcf = input_vcf
-    File output_vcf_index = vcf_basename + ".tbi"
+    File output_vcf_index = "~{vcf_basename}.tbi"
   }
 }
 
