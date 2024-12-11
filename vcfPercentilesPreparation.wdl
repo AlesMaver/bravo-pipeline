@@ -69,7 +69,7 @@ workflow prepareVCFPercentiles {
 
     call vcfTasks.VCFdropGeno {
         input: 
-            input_vcf = VCFindex.output_vcf,
+            input_vcf = computeAlleleCountsAndHistograms.out,
             input_vcf_index = VCFindex.output_vcf_index,
             output_name = vcf_basename + "_droppedGeno",
             threads = threads
