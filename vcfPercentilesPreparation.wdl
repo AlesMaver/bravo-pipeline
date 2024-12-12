@@ -322,8 +322,8 @@ task addPercentiles {
         sed '$ s/.$//' -i metrics/metrics.json
         echo -n "]" >> metrics/metrics.json
         ## fix metrics.json: inf -> "flaot('inf')"
-        sed 's/inf/"float(\'inf\')"/g' metrics/metrics.json | \
-        sed 's/nan/"float(\'nan\')"/g' | \
+        sed 's/inf/"float(\'inf\\')"/g' metrics/metrics.json | \
+        sed 's/nan/"float(\'nan\\')"/g' | \
         sed 's/"Description_AVGDP"/"AVGDP: Average depth per sample"/g' | \
         sed 's/"Description_VQSLOD"/"VQSLOD: Log odds of being a true variant versus being false under the trained gaussian mixture model"/g' | \
         sed 's/"Description_SOR"/"SOR: Allele specific strand Odds Ratio of 2x|Alts| contingency table to detect allele specific strand bias"/g' | \
