@@ -2,6 +2,8 @@
 
 ## CONSIDER:
 ##  bcftools +fixref $PVCF -- -m flip -f wgs_reference/Homo_sapiens_assembly38.fasta -i DPSNP/All_20180418_chr.vcf.gz
+##  update AnnotateWithClinVarVCF: split to VCFsplitSubset + AnnotateWithClinVarVCF
+##  VCFindex after VEP (don't use tabix within VEP)
 
 version 1.0
 
