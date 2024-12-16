@@ -343,7 +343,7 @@ task addPercentiles {
     output {
         File out = "vcf/~{vcf_basename}.percentiles.vcf.gz"
         File out_index = "vcf/~{vcf_basename}.percentiles.vcf.gz.tbi"
-        File metrics_json = "metrics/metrics.json"
+        File metrics_json = "metrics/metrics-fix.json"
     }
     runtime {
         docker: "statgen/bravo-pipeline:latest"

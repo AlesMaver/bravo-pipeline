@@ -185,7 +185,7 @@ workflow BravoDataPreparation {
     File output_vcf = addPercentiles.out
     File output_vcfs_indices = addPercentiles.out_index
     File output_metrics_json = addPercentiles.metrics_json
-    Array[File] out_metrics_file = computePercentiles.outAllPercentiles
+    # Array[File] out_metrics_file = computePercentiles.outAllPercentiles
     File RemoveReportedVariants_output_vcf = concatIdxVcf_repVarRem.output_vcf
     File RemoveReportedVariants_output_vcf_index = concatIdxVcf_repVarRem.output_vcf_index
     Array[File]? out_crams = concatCrams.output_cram
