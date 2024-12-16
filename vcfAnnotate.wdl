@@ -265,3 +265,70 @@ task VEP {
       File output_vcf_index = "~{output_basename}_VEP.vcf.gz.tbi"
   }
 }
+
+###################################
+## VEP for Bravo
+task VEP_Bravo {
+  input {
+    File input_vcf
+    File input_vcf_index
+    Int cpus = 6
+    VEPReferences vep_ref
+    String assembly = "GRCh38"
+    Int buffer_size = 5000
+    Boolean annotate_with_dbnsfp = true
+    Boolean annotate_with_loftee = true
+    Boolean annotate_with_alphamissense = true
+    String? annotation_fields
+    String output_basename = basename(input_vcf, ".vcf.gz")
+  }
+
+  String arg_dbnsfp = if annotate_with_dbnsfp && defined(annotation_fields) then '--plugin dbNSFP,' + vep_ref.dbNSFP_vcf + ',' + annotation_fields else ''
+  String arg_loftee = if annotate_with_loftee then '--plugin LoF,loftee_path:' + vep_ref.plugins_dir + ',human_ancestor_fa:' + vep_ref.loftee_data_dir + '/human_ancestor.fa.gz,conservation_file:' + vep_ref.loftee_data_dir + '/loftee.sql,gerp_bigwig:' + vep_ref.loftee_data_dir + '/gerp_conservation_scores.homo_sapiens.GRCh38.bw' else ''
+  String arg_am = if annotate_with_alphamissense then '--plugin AlphaMissense,file=' + vep_ref.AlphaMissense_data_dir + '/AlphaMissense_hg38.tsv.gz' else ''
+
+  command <<<
+    vep -i ~{input_vcf} \
+      -o ~{output_basename}_VEP.vcf.gz \
+      --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
+      --cache --dir_cache ~{vep_ref.cache_dir} \
+      --assembly ~{assembly} \
+      --allele_number \
+      --no_stats \
+      --dir_plugins ~{vep_ref.plugins_dir} \
+      ~{arg_dbnsfp} \
+      ~{arg_loftee} \
+      ~{arg_am} \
+      --buffer_size ~{buffer_size} \
+      --sift b \
+      --polyphen b \
+      --ccds \
+      --uniprot \
+      --hgvs \
+      --symbol \
+      --numbers \
+      --domains \
+      --regulatory \
+      --canonical \
+      --protein \
+      --biotype \
+      --af \
+      --af_1kg \
+      --pubmed \
+      --shift_hgvs 0
+
+    tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
+  >>>
+
+  runtime {
+      docker: "ensemblorg/ensembl-vep:latest"
+      requested_memory_mb_per_core: 2000
+      cpu: cpus
+      runtime_minutes: 60
+  }
+
+  output {
+      File output_vcf = "~{output_basename}_VEP.vcf.gz"
+      File output_vcf_index = "~{output_basename}_VEP.vcf.gz.tbi"
+  }
+}

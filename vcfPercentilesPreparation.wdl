@@ -75,7 +75,7 @@ workflow prepareVCFPercentiles {
 #            threads = threads
 #    }
 
-    call vcfAnnotate.VEP {
+    call vcfAnnotate.VEP_Bravo {
         input: 
             input_vcf = AddOriginalVCFAnnotations.output_vcf,
             input_vcf_index = AddOriginalVCFAnnotations.output_vcf_index,
@@ -90,7 +90,7 @@ workflow prepareVCFPercentiles {
 
     call addCaddScores {
         input: 
-            chromosomeVCF = VEP.output_vcf,
+            chromosomeVCF = VEP_Bravo.output_vcf,
             cadScores = cadScores,
             cadScoresIndex = cadScoresIndex
     }
