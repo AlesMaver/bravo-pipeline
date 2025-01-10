@@ -37,6 +37,7 @@ workflow AdmixtureCV {
   output {
     Array[File] output_P = crossValAdmixture.output_P
     Array[File] output_Q = crossValAdmixture.output_Q
+    Array[File] output_stdout = crossValAdmixture.output_stdout
     File output_CVerror = collectCVerror.output_CVerror
   }
 } # Close workflow
