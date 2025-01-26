@@ -211,10 +211,10 @@ task AnnotateWithClinVarVCF {
 ## --fork: should not be used @ Vega, makes it crash with ERROR: Forked process(es) died: read-through of cross-process communication detected
 ## Options used:
 ##  --flag_pick: Instead of choosing one block and removing the others, this option adds a flag "PICK=1" to picked annotation block, allowing you to easily filter on this
+##  --shift_hgvs 0: Was used in Bravo vcfPercentilesPreparation.wdl
 ## Options to consider:
 ##  --use_given_ref: Using --bam or a BAM-edited RefSeq cache by default enables --use_transcript_ref; add this flag to override this behaviour and use the provided reference allele from the input. 
-##  --shift_hgvs 0: Was used in Bravo vcfPercentilesPreparation.wdl
-## Removed for test sort problem:
+## Conisder remove for test sort problem:
 ##  --merged: RefSeq + ENSEMBL cache
 task VEP {
   input {
@@ -239,7 +239,7 @@ task VEP {
     vep -i ~{input_vcf} \
       -o ~{output_basename}_VEP.vcf.gz \
       --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-      --cache --dir_cache ~{vep_ref.cache_dir} \
+      --cache --merged --dir_cache ~{vep_ref.cache_dir} \
       --assembly ~{assembly} \
       --everything \
       --flag_pick \
@@ -250,7 +250,8 @@ task VEP {
       ~{arg_dbnsfp} \
       ~{arg_loftee} \
       ~{arg_am} \
-      --buffer_size ~{buffer_size}
+      --buffer_size ~{buffer_size} \
+      --shift_hgvs 0
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>
