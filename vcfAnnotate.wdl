@@ -91,7 +91,7 @@ workflow vcfAnnotate {
       }
     }
 
-    call VEP {
+    call VEP_Bravo as VEP {
       input:
         input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
