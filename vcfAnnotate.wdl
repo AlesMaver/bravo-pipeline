@@ -91,7 +91,7 @@ workflow vcfAnnotate {
       }
     }
 
-    call VEP_Bravo as VEP {
+    call VEP {
       input:
         input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
@@ -211,11 +211,23 @@ task AnnotateWithClinVarVCF {
 ## --fork: should not be used @ Vega, makes it crash with ERROR: Forked process(es) died: read-through of cross-process communication detected
 ## Options used:
 ##  --flag_pick: Instead of choosing one block and removing the others, this option adds a flag "PICK=1" to picked annotation block, allowing you to easily filter on this
-##  --shift_hgvs 0: Was used in Bravo vcfPercentilesPreparation.wdl
+##  --merged: RefSeq + ENSEMBL cache
+##  --minimal
 ## Options to consider:
 ##  --use_given_ref: Using --bam or a BAM-edited RefSeq cache by default enables --use_transcript_ref; add this flag to override this behaviour and use the provided reference allele from the input. 
-## Conisder remove for test sort problem:
-##  --merged: RefSeq + ENSEMBL cache
+##  --shift_hgvs 0: Used in Bravo vcfPercentilesPreparation.wdl
+## Conisder for sort problem:
+##  Users using VCF should note a peculiarity in the difference between how Ensembl and VCF describe unbalanced variants. 
+##  For any unbalanced variant (i.e. insertion, deletion or unbalanced substitution), the VCF specification requires that the base immediately before the variant should be 
+##  included in both the reference and variant alleles. This also affects the reported position i.e. the reported position will be one base before the actual site of the variant.
+##  In order to parse this correctly, VEP needs to convert such variants into Ensembl-type coordinates, and it does this by removing the additional base and adjusting the
+##  coordinates accordingly. This means that if an identifier is not supplied for a variant (in the 3rd column of the VCF), then the identifier constructed and the position 
+##  reported in VEP's output file will differ from the input.
+##  
+##  This problem can be overcome with the following:
+##  - ensuring each variant has a unique identifier specified in the 3rd column of the VCF
+##  - using VCF format as output (--vcf) - this preserves the formatting of your input coordinates and alleles
+##  - using --minimal and --allele_number (see Complex VCF entries).
 task VEP {
   input {
     File input_vcf
@@ -243,15 +255,14 @@ task VEP {
       --assembly ~{assembly} \
       --everything \
       --flag_pick \
-      --allele_number \
+      --allele_number --minimal \
       --nearest symbol \
       --no_stats \
       --dir_plugins ~{vep_ref.plugins_dir} \
       ~{arg_dbnsfp} \
       ~{arg_loftee} \
       ~{arg_am} \
-      --buffer_size ~{buffer_size} \
-      --shift_hgvs 0
+      --buffer_size ~{buffer_size}
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>
