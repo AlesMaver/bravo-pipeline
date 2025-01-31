@@ -24,6 +24,9 @@ workflow vcfNormFilterMerge {
 
     # File for samples
     File samplesFile
+    # Optional subset regions in 'chr:beg-end' format, all positions overlapping the region
+    #File? regionsFile
+    Array[String] regions
 
     # Reference FASTA file - hg37/38
     File referenceFasta
@@ -36,19 +39,23 @@ workflow vcfNormFilterMerge {
     String output_vcf_basename
   }
 
-  call vcfTasks.ConvertIntervalListToBed {
-    input:
-      interval_list = interval_list
-  }
+  if (length(regions) == 0) {
 
-  call vcfTasks.SplitRegions {
-    input:
-      input_bed = ConvertIntervalListToBed.converted_bed,
-      thinning_parameter = thinning_parameter,
-      scatter_region_size = scatter_region_size
-  }
+    call vcfTasks.ConvertIntervalListToBed {
+      input:
+        interval_list = interval_list
+    }
 
-  scatter (region in SplitRegions.scatter_regions) {
+    call vcfTasks.SplitRegions {
+      input:
+        input_bed = ConvertIntervalListToBed.converted_bed,
+        thinning_parameter = thinning_parameter,
+        scatter_region_size = scatter_region_size
+    }
+
+  } # End if regions
+
+  scatter (region in select_first([regions, SplitRegions.scatter_regions])) {
 
     scatter (idx in range(length(input_vcfs))) {
 
