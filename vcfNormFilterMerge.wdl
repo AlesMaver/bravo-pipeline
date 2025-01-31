@@ -25,7 +25,6 @@ workflow vcfNormFilterMerge {
     # File for samples
     File samplesFile
     # Optional subset regions in 'chr:beg-end' format, all positions overlapping the region
-    #File? regionsFile
     Array[String] regions
 
     # Reference FASTA file - hg37/38

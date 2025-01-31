@@ -34,6 +34,9 @@ workflow vcfAnnotate {
     Int? thinning_parameter
     Int  scatter_region_size = 1000000 # smaller regions result in empty VCFs that will fail at concatenate
 
+    # Optional subset regions in 'chr:beg-end' format, all positions overlapping the region
+    Array[String] regions
+
     Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
 
     Boolean annotate_with_clinvar = true
@@ -63,19 +66,23 @@ workflow vcfAnnotate {
 
   call GetClinVarVCF
 
-  call vcfTasks.ConvertIntervalListToBed {
-    input:
-      interval_list = interval_list
-  }
+  if (length(regions) == 0) {
 
-  call vcfTasks.SplitRegions {
-    input:
-      input_bed = ConvertIntervalListToBed.converted_bed,
-      thinning_parameter = thinning_parameter,
-      scatter_region_size = scatter_region_size
-  }
+    call vcfTasks.ConvertIntervalListToBed {
+      input:
+        interval_list = interval_list
+    }
 
-  scatter (region in SplitRegions.scatter_regions) {
+    call vcfTasks.SplitRegions {
+      input:
+        input_bed = ConvertIntervalListToBed.converted_bed,
+        thinning_parameter = thinning_parameter,
+        scatter_region_size = scatter_region_size
+    }
+
+  } # End if regions
+
+  scatter (region in select_first([regions, SplitRegions.scatter_regions])) {
 
     if ( annotate_with_clinvar ) {
       call AnnotateWithClinVarVCF {
