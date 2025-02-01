@@ -390,6 +390,64 @@ task VCFdropGeno {
 }
 
 ##############################
+## Set all IDs to the following format
+## bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT'
+task VCFsetIDs {
+  input {
+    # Command parameters
+    File input_vcf
+    File input_vcf_index
+    String output_name
+    Int threads
+  }
+  
+  command <<<
+    set -e
+    bcftools annotate ~{input_vcf} --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT' --threads ~{threads} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    #runtime_minutes: ?
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+##############################
+## Set all IDs to the following format
+## bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT'
+task VCFsetMissingIDs {
+  input {
+    # Command parameters
+    File input_vcf
+    File input_vcf_index
+    String output_name
+    Int threads
+  }
+  
+  command <<<
+    set -e
+    bcftools annotate ~{input_vcf} --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' --threads ~{threads} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    #runtime_minutes: ?
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
+##############################
 ## DEPRECATED for concatIdxVcf
 ## Note that we do not index here due to time limits of individual tasks
 task concatVcf {

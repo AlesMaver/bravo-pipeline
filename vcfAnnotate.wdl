@@ -98,10 +98,20 @@ workflow vcfAnnotate {
       }
     }
 
-    call VEP {
+    ## Set all IDs
+    ## Test to sort problem, see https://www.ensembl.org/info/docs/tools/vep/vep_formats.html#vcf
+    call vcfTasks.VCFsetIDs {
       input:
         input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
+        output_name = sub(sub(region, "-", "_"), ":", "__") + ".setIDs." + output_vcf_basename,
+        threads = threads
+    }
+
+    call VEP {
+      input:
+        input_vcf = VCFsetIDs.output_vcf,
+        input_vcf_index = VCFsetIDs.output_vcf_index,
         cpus = if threads < 6 then 6 else threads,
         vep_ref = vep_ref,
         assembly = assembly,
@@ -116,26 +126,20 @@ workflow vcfAnnotate {
     # sort after VEP to avoid indexing error after concat, e.g.:
     #  [E::hts_idx_push] Unsorted positions on sequence #9: 133220600 followed by 133220598
     # TODO: REMOVE, NOT NEEDED, WE STILL GET THE SAME ERROR
-    call vcfTasks.sortIdxVcf {
-      input:
-        input_vcf = VEP.output_vcf,
-        input_vcf_index = VEP.output_vcf_index,
-        output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,
-        threads = threads
-    }
-
-#    call vcfTasks.VCFindex as sortVcf_index {
-#      input:
-#        input_vcf = sortVcf.output_vcf,
-#        threads = threads
-#    }
+    #call vcfTasks.sortIdxVcf {
+    #  input:
+    #    input_vcf = VEP.output_vcf,
+    #    input_vcf_index = VEP.output_vcf_index,
+    #    output_name = sub(sub(region, "-", "_"), ":", "__") + ".sorted." + output_vcf_basename,
+    #    threads = threads
+    #}
 
   } # Close scatter region
 
   call vcfTasks.concatIdxVcf {
     input:
-      input_vcfs = sortIdxVcf.output_vcf,
-      input_vcfs_indices = sortIdxVcf.output_vcf_index,
+      input_vcfs = VEP.output_vcf,
+      input_vcfs_indices = VEP.output_vcf_index,
       output_name = output_vcf_basename,
       threads = threads
   }
@@ -219,11 +223,12 @@ task AnnotateWithClinVarVCF {
 ## Options used:
 ##  --flag_pick: Instead of choosing one block and removing the others, this option adds a flag "PICK=1" to picked annotation block, allowing you to easily filter on this
 ##  --merged: RefSeq + ENSEMBL cache
-##  --minimal
+##  --minimal: to solve sorting problem after scatter
 ## Options to consider:
 ##  --use_given_ref: Using --bam or a BAM-edited RefSeq cache by default enables --use_transcript_ref; add this flag to override this behaviour and use the provided reference allele from the input. 
 ##  --shift_hgvs 0: Used in Bravo vcfPercentilesPreparation.wdl
-## Conisder for sort problem:
+##
+## For sort problem, consider https://www.ensembl.org/info/docs/tools/vep/vep_formats.html#vcf
 ##  Users using VCF should note a peculiarity in the difference between how Ensembl and VCF describe unbalanced variants. 
 ##  For any unbalanced variant (i.e. insertion, deletion or unbalanced substitution), the VCF specification requires that the base immediately before the variant should be 
 ##  included in both the reference and variant alleles. This also affects the reported position i.e. the reported position will be one base before the actual site of the variant.
