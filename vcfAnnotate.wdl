@@ -100,20 +100,10 @@ workflow vcfAnnotate {
       }
     }
 
-    ## Set all IDs
-    ## Test to sort problem, see https://www.ensembl.org/info/docs/tools/vep/vep_formats.html#vcf
-    call vcfTasks.VCFsetIDs {
+    call VEP {
       input:
         input_vcf = select_first([AnnotateWithClinVarVCF.output_vcf, input_vcf]),
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
-        output_name = sub(sub(region, "-", "_"), ":", "__") + ".setIDs." + output_vcf_basename,
-        threads = threads
-    }
-
-    call VEP {
-      input:
-        input_vcf = VCFsetIDs.output_vcf,
-        input_vcf_index = VCFsetIDs.output_vcf_index,
         cpus = if threads < 6 then 6 else threads,
         vep_ref = vep_ref,
         assembly = assembly,
@@ -127,7 +117,7 @@ workflow vcfAnnotate {
 
     # sort after VEP to avoid indexing error after concat, e.g.:
     #  [E::hts_idx_push] Unsorted positions on sequence #9: 133220600 followed by 133220598
-    # TODO: REMOVE, NOT NEEDED, WE STILL GET THE SAME ERROR
+    # TODO: REMOVE, MAY NOT BE NEEDED, WE STILL GET THE SAME ERROR
     #call vcfTasks.sortIdxVcf {
     #  input:
     #    input_vcf = VEP.output_vcf,
@@ -145,12 +135,6 @@ workflow vcfAnnotate {
       output_name = output_vcf_basename,
       threads = threads
   }
-
-#  call vcfTasks.VCFindex as concatVcf_index{
-#    input:
-#      input_vcf = concatVcf.output_vcf,
-#      threads = threads
-#  }
 
   output {
     File output_vcf = concatIdxVcf.output_vcf
