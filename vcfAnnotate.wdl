@@ -80,9 +80,11 @@ workflow vcfAnnotate {
         scatter_region_size = scatter_region_size
     }
 
+    Array[String] regions = SplitRegions.scatter_regions
+
   } # End if regions
 
-  scatter (region in select_first([regions, SplitRegions.scatter_regions])) {
+  scatter (region in regions) {
 
     if ( annotate_with_clinvar ) {
       call AnnotateWithClinVarVCF {
