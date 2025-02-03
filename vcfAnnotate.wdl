@@ -159,7 +159,7 @@ workflow vcfAnnotate {
         input_vcfs = sortPairIdxVcf.output_vcf,
         input_vcfs_indices = sortPairIdxVcf.output_vcf_index,
         output_name = output_vcf_basename,
-        threads = threads
+        threads = 40
     }
 
   } # End if regions
