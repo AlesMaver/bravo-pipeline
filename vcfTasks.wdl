@@ -512,6 +512,7 @@ task concatOverlapsIdxVcf {
     Array[File] input_vcfs_indices
     String output_name
     Int threads
+    Int memory_mb_per_core = 2000
   }
   
   command <<<
@@ -521,7 +522,7 @@ task concatOverlapsIdxVcf {
 
   runtime {
     docker: "peterjuv/bcftools:v.1.20"
-    requested_memory_mb_per_core: 2000
+    requested_memory_mb_per_core: memory_mb_per_core
     cpu: threads
     #runtime_minutes: >11h
   }
