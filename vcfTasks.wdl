@@ -520,7 +520,7 @@ task concatOverlapsIdxVcf {
   >>>
 
   runtime {
-    docker: "peterjuv/bcftools"
+    docker: "peterjuv/bcftools:v.1.20"
     requested_memory_mb_per_core: 2000
     cpu: threads
     #runtime_minutes: >11h
