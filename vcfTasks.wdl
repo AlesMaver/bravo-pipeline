@@ -501,6 +501,36 @@ task concatIdxVcf {
   }
 }
 
+##############################
+## bcftools concat --allow-overlaps --remove-duplicates
+## Note that records duplicate within one file are not removed 
+## Every line that finds a matching record in another file will be printed only once
+## Alias --rm-dups exact
+task concatOverlapsIdxVcf {
+  input {
+    Array[File] input_vcfs
+    Array[File] input_vcfs_indices
+    String output_name
+    Int threads
+  }
+  
+  command <<<
+    set -e
+    bcftools concat --allow-overlaps --remove-duplicates --threads ~{threads} -f ~{write_lines(input_vcfs)} -Oz -o ~{output_name}.vcf.gz --write-index=tbi
+  >>>
+
+  runtime {
+    docker: "peterjuv/bcftools"
+    requested_memory_mb_per_core: 2000
+    cpu: threads
+    #runtime_minutes: >11h
+  }
+  output {
+    File output_vcf = "~{output_name}.vcf.gz"
+    File output_vcf_index = "~{output_name}.vcf.gz.tbi"
+  }
+}
+
 
 ##############################
 ## bcftools norm can affect the order of variants in a VCF file; thus we need to sort

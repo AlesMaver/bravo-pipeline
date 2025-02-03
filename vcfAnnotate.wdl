@@ -80,11 +80,11 @@ workflow vcfAnnotate {
         scatter_region_size = scatter_region_size
     }
 
-    Array[String] regions = SplitRegions.scatter_regions
-
   } # End if regions
 
-  scatter (region in regions) {
+  Array[String] regions2 = select_first([SplitRegions.scatter_regions, regions])
+
+  scatter (region in regions2) {
 
     if ( annotate_with_clinvar ) {
       call AnnotateWithClinVarVCF {
@@ -128,17 +128,45 @@ workflow vcfAnnotate {
 
   } # Close scatter region
 
-  call vcfTasks.concatIdxVcf {
-    input:
-      input_vcfs = VEP.output_vcf,
-      input_vcfs_indices = VEP.output_vcf_index,
-      output_name = output_vcf_basename,
-      threads = threads
-  }
+  if (length(regions2) > 1) {
+
+    scatter (regionIdx in range(length(regions2) - 1)) {
+
+      Int regionIdx1 = regionIdx + 1
+
+      call vcfTasks.concatOverlapsIdxVcf as concatOverlapsPairIdxVcf {
+        input:
+          input_vcfs = [VEP.output_vcf[regionIdx], VEP.output_vcf[regionIdx1]],
+          input_vcfs_indices = [VEP.output_vcf_index[regionIdx], VEP.output_vcf_index[regionIdx1]],
+          #output_name = sub(sub(regions2[regionIdx], "-", "_"), ":", "__") + sub(sub(regions2[regionIdx1], "-", "_"), ":", "__") + ".concatOverlapsPair." + output_vcf_basename,
+          output_name = "concatOverlapsPair." + output_vcf_basename,
+          threads = threads
+      }
+
+      call vcfTasks.sortIdxVcf as sortPairIdxVcf {
+        input:
+          input_vcf = concatOverlapsPairIdxVcf.output_vcf,
+          input_vcf_index = concatOverlapsPairIdxVcf.output_vcf_index,
+          #output_name = sub(sub(regions2[regionIdx], "-", "_"), ":", "__") + sub(sub(regions2[regionIdx1], "-", "_"), ":", "__") + ".sortPair." + output_vcf_basename,
+          output_name = "sortPair." + output_vcf_basename,
+          threads = threads
+      }
+
+    } # Close scatter region
+
+    call vcfTasks.concatOverlapsIdxVcf {
+      input:
+        input_vcfs = sortPairIdxVcf.output_vcf,
+        input_vcfs_indices = sortPairIdxVcf.output_vcf_index,
+        output_name = output_vcf_basename,
+        threads = threads
+    }
+
+  } # End if regions
 
   output {
-    File output_vcf = concatIdxVcf.output_vcf
-    File output_vcfs_indices = concatIdxVcf.output_vcf_index
+    File output_vcf = select_first([concatOverlapsIdxVcf.output_vcf, VEP.output_vcf])
+    File output_vcf_index = select_first([concatOverlapsIdxVcf.output_vcf_index, VEP.output_vcf_index])
   }
 
 } # Close workflow
