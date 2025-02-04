@@ -54,7 +54,13 @@ workflow vcfNormFilterMerge {
 
   } # End if regions
 
-  scatter (region in select_first([regions, SplitRegions.scatter_regions])) {
+  call vcfTasks.ThinRegions {
+    input:
+      regions = regions,
+      thinning_parameter = thinning_parameter
+  }
+
+  scatter (region in select_first([SplitRegions.scatter_regions, ThinRegions.regions_thin])) {
 
     scatter (idx in range(length(input_vcfs))) {
 

@@ -82,7 +82,13 @@ workflow vcfAnnotate {
 
   } # End if regions
 
-  Array[String] regions2 = select_first([SplitRegions.scatter_regions, regions])
+  call vcfTasks.ThinRegions {
+    input:
+      regions = regions,
+      thinning_parameter = thinning_parameter
+  }
+
+  Array[String] regions2 = select_first([SplitRegions.scatter_regions, ThinRegions.regions_thin])
 
   scatter (region in regions2) {
 

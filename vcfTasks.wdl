@@ -73,6 +73,32 @@ task SplitRegions {
 }
 
 ##############################
+task ThinRegions {
+  input {
+    Array[String] regions
+    Int? thinning_parameter
+  }
+
+  # Command section where the conversion is performed using Picard
+  command <<<
+    cat ~{write_lines(regions)} | awk 'NR % ~{default="1" thinning_parameter} == 0' > regions_thin.txt
+  >>>
+
+  runtime {
+    docker: "bashell/alpine-bash:latest"
+    cpu: 2
+    requested_memory_mb_per_core: 2000
+    runtime_minutes: 10
+  }
+
+  output {
+    File regions_file = "regions_thin.txt"
+    Array[String] regions_thin = read_lines("regions_thin.txt")
+  }
+}
+
+
+##############################
 ## DEPRECATED for VCFsplitSubset + VCFnorm
 ## bcftools view -r -t -S | norm -m-any -f ~{referenceFasta}
 task VCFsplitter {
@@ -205,7 +231,7 @@ task VCFsplitSubset {
 ##  annotate -x FORMAT/PGT,FORMAT/PID         # physical phasing haplotype information + physical phasing ID information
 ##  view --types snps,indels
 ##  +fill-tags
-##  view -i 'F_MISSING<1'                     # Fraction of missing genotypes: include sites with with at least one genotypeany, i.e. not all missing
+##  view -i 'F_MISSING<1'                     # Fraction of missing genotypes: include sites with at least one genotype, i.e. not all missing
 ##  filter -e 'INFO/AC=0'                     # allele count in genotypes, for each ALT (alternative) allele, in the same order as listed: exclude sites with no alelles
 ##  view -i "QUAL>100"                        # phred-scaled probability that the site has no variant
 task VCFfilter {
