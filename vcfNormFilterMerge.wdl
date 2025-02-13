@@ -33,7 +33,8 @@ workflow vcfNormFilterMerge {
 
     # Options
     Float F_MISSING_upper_bounds = 1
-
+    Int memory_mb_per_core = 8000
+    
     # Output
     String output_vcf_basename
   }
@@ -137,7 +138,7 @@ workflow vcfNormFilterMerge {
       input_vcf_index = concatIdxVcf.output_vcf_index,
       output_name = output_vcf_basename,
       threads = 2 * threads,
-      memory_mb_per_core = 8000
+      memory_mb_per_core = memory_mb_per_core
   }
 
 #  call vcfTasks.VCFindex as sortVcf_index {
