@@ -33,8 +33,9 @@ workflow vcfNormFilterMerge {
 
     # Options
     Float F_MISSING_upper_bounds = 1
+    Float QUAL_lower_bounds = 100
     Int memory_mb_per_core = 8000
-    
+
     # Output
     String output_vcf_basename
   }
@@ -87,7 +88,8 @@ workflow vcfNormFilterMerge {
           input_vcf = VCFnorm.output_vcf,
           input_vcf_index = VCFnorm.output_vcf_index,
           threads = threads,
-          F_MISSING_upper_bounds = F_MISSING_upper_bounds
+          F_MISSING_upper_bounds = F_MISSING_upper_bounds,
+          QUAL_lower_bounds = QUAL_lower_bounds
       }
 
     } # Close per input vcf scatter

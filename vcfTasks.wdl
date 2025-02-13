@@ -241,6 +241,7 @@ task VCFfilter {
     File input_vcf_index
     Int threads
     Float F_MISSING_upper_bounds = 1
+    Float QUAL_lower_bounds = 100
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz")
@@ -254,7 +255,7 @@ task VCFfilter {
       bcftools +fill-tags --threads ~{threads} | \
       bcftools view --threads ~{threads} -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \
       bcftools filter --threads ~{threads} -e 'INFO/AC=0' | \
-      bcftools filter --threads ~{threads} -i "QUAL>100" -Oz -o ~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz --write-index=tbi
+      bcftools filter --threads ~{threads} -i 'QUAL>~{QUAL_lower_bounds}' -Oz -o ~{vcf_basename}_flt.vcf.gz --write-index=tbi
   }
   runtime {
     docker: "peterjuv/bcftools"
@@ -263,8 +264,8 @@ task VCFfilter {
     runtime_minutes: 120
   }
   output {
-    File output_vcf = "~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz"
-    File output_vcf_index = "~{vcf_basename}_flt~{F_MISSING_upper_bounds}.vcf.gz.tbi"
+    File output_vcf = "~{vcf_basename}_flt.vcf.gz"
+    File output_vcf_index = "~{vcf_basename}_flt.vcf.gz.tbi"
   }
 }
 
