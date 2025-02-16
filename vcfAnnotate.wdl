@@ -38,6 +38,7 @@ workflow vcfAnnotate {
     Array[String] regions
 
     Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
+    Int memory_mb_per_core = 8000   # for concatenating overlapping VCFs
 
     Boolean annotate_with_clinvar = true
     #### TODO IMPLEMENT
@@ -166,7 +167,7 @@ workflow vcfAnnotate {
         input_vcfs_indices = sortPairIdxVcf.output_vcf_index,
         output_name = output_vcf_basename,
         threads = threads,
-        memory_mb_per_core = 8000
+        memory_mb_per_core = memory_mb_per_core
     }
 
   } # End if regions
