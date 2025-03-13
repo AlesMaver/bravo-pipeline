@@ -32,6 +32,7 @@ workflow vcfNormFilterMerge {
 
     # Options
     Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
+    String? FILTER_include # e.g. ".,PASS"
     Float F_MISSING_upper_bounds = 1
     Float QUAL_lower_bounds = 100
     Int memory_mb_per_core = 8000
@@ -89,7 +90,8 @@ workflow vcfNormFilterMerge {
           input_vcf_index = VCFnorm.output_vcf_index,
           threads = threads,
           F_MISSING_upper_bounds = F_MISSING_upper_bounds,
-          QUAL_lower_bounds = QUAL_lower_bounds
+          QUAL_lower_bounds = QUAL_lower_bounds,
+          FILTER_include = FILTER_include
       }
 
     } # Close per input vcf scatter

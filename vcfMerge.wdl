@@ -1,5 +1,6 @@
 version 1.0
 ## Copyright CMG@KIGM, Peter Juvan
+## DEPRECATED for vcfNormFilterMerge
 
 # Subworkflows
 import "./vcfTasks.wdl" as vcfTasks
