@@ -243,6 +243,7 @@ task VCFfilter {
     Float F_MISSING_upper_bounds = 1
     Float QUAL_lower_bounds = 100
     String? FILTER_include
+    String? ANNOTATION_exclude
   }
 
   String vcf_basename = basename(input_vcf, ".vcf.gz")
@@ -251,7 +252,7 @@ task VCFfilter {
     set -e
     bcftools view --threads ~{threads} ~{input_vcf} ~{"--apply-filters " + FILTER_include} | \
       bcftools +setGT --threads ~{threads} -- -t q -n . -i 'FORMAT/GQ<20' | \
-      bcftools annotate --threads ~{threads} -x FORMAT/PGT,FORMAT/PID | \
+      bcftools annotate --threads ~{threads} -x FORMAT/PGT,FORMAT/PID~{"," + ANNOTATION_exclude} | \
       bcftools view --threads ~{threads} --types snps,indels | \
       bcftools +fill-tags --threads ~{threads} | \
       bcftools view --threads ~{threads} -i 'F_MISSING<~{F_MISSING_upper_bounds}' | \

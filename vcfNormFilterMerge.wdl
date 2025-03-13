@@ -31,8 +31,9 @@ workflow vcfNormFilterMerge {
     File referenceFasta
 
     # Options
-    Int threads = 4   # use even numbers because slurm floors cpu to even numbers, but not total memory
-    String? FILTER_include # e.g. ".,PASS"
+    Int threads = 4                 # use even numbers because slurm floors cpu to even numbers, but not total memory
+    String? FILTER_include          # e.g. ".,PASS"
+    String? ANNOTATION_exclude      # e.g. "FILTER,FORMAT" to remove all filters and all FORMAT tags except GT; we exlude FORMAT/PGT,FORMAT/PID by default
     Float F_MISSING_upper_bounds = 1
     Float QUAL_lower_bounds = 100
     Int memory_mb_per_core = 8000
@@ -91,7 +92,8 @@ workflow vcfNormFilterMerge {
           threads = threads,
           F_MISSING_upper_bounds = F_MISSING_upper_bounds,
           QUAL_lower_bounds = QUAL_lower_bounds,
-          FILTER_include = FILTER_include
+          FILTER_include = FILTER_include,
+          ANNOTATION_exclude = ANNOTATION_exclude
       }
 
     } # Close per input vcf scatter
