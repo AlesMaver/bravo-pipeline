@@ -50,6 +50,7 @@ workflow vcfAnnotate {
     VEPReferences vep_ref
     String assembly = "GRCh38"
     Int buffer_size = 5000
+    String? flags   # space separated list of VEP flags, e.g. '--merged --custom_multi_allelic'
 
     ## Annotations
     # String DBNSFP_ANNFIELDS_DEFAULT="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
@@ -115,6 +116,7 @@ workflow vcfAnnotate {
         vep_ref = vep_ref,
         assembly = assembly,
         buffer_size = buffer_size,
+        flags = flags,
         annotate_with_dbnsfp = annotate_with_dbnsfp,
         annotate_with_alphamissense = annotate_with_alphamissense,
         annotate_with_loftee = annotate_with_loftee,
@@ -240,12 +242,12 @@ task AnnotateWithClinVarVCF {
 ## Plugin LoF requires input_vcf_index to be in .tbi format
 ## recommended runtime cpu: 6 (estimated by mem usage for SGP VCF consisting 9425 samples and scatter_region_size = 300000)
 ## 
-## Options disabled:
-## --fork: should not be used @ Vega, makes it crash with ERROR: Forked process(es) died: read-through of cross-process communication detected
 ## Options used:
 ##  --flag_pick: Instead of choosing one block and removing the others, this option adds a flag "PICK=1" to picked annotation block, allowing you to easily filter on this
-##  --merged: RefSeq + ENSEMBL cache
 ##  --minimal: to solve sorting problem after scatter
+## Options disabled:
+## --fork: should not be used @ Vega, makes it crash with ERROR: Forked process(es) died: read-through of cross-process communication detected
+##  --merged: RefSeq + ENSEMBL cache
 ## Options to consider:
 ##  --use_given_ref: Using --bam or a BAM-edited RefSeq cache by default enables --use_transcript_ref; add this flag to override this behaviour and use the provided reference allele from the input. 
 ##  --shift_hgvs 0: Used in Bravo vcfPercentilesPreparation.wdl
@@ -270,6 +272,7 @@ task VEP {
     VEPReferences vep_ref
     String assembly = "GRCh38"
     Int buffer_size = 5000
+    String? flags
     Boolean annotate_with_dbnsfp = true
     Boolean annotate_with_loftee = true
     Boolean annotate_with_alphamissense = true
@@ -285,7 +288,7 @@ task VEP {
     vep -i ~{input_vcf} \
       -o ~{output_basename}_VEP.vcf.gz \
       --offline --format vcf --vcf --force_overwrite --compress_output bgzip -v \
-      --cache --merged --dir_cache ~{vep_ref.cache_dir} \
+      --cache --dir_cache ~{vep_ref.cache_dir} \
       --assembly ~{assembly} \
       --everything \
       --flag_pick \
@@ -296,7 +299,7 @@ task VEP {
       ~{arg_dbnsfp} \
       ~{arg_loftee} \
       ~{arg_am} \
-      --buffer_size ~{buffer_size}
+      --buffer_size ~{buffer_size} ~{flags}
 
     tabix --force --preset vcf ~{output_basename}_VEP.vcf.gz
   >>>
