@@ -48,9 +48,9 @@ workflow vcfAnnotate {
 
     # VEP
     VEPReferences vep_ref
-    String assembly = "GRCh38"
-    Int buffer_size = 5000
-    String? flags   # space separated list of VEP flags, e.g. '--merged --custom_multi_allelic'
+    String vep_assembly = "GRCh38"
+    Int vep_buffer_size = 5000
+    String? vep_flags   # space separated list of VEP flags, e.g. '--merged --custom_multi_allelic'
 
     ## Annotations
     # String DBNSFP_ANNFIELDS_DEFAULT="1000Gp3_AC,1000Gp3_EUR_AC,CADD_phred,ESP6500_AA_AC,ESP6500_EA_AC,FATHMM_pred,GERP++_NR,GERP++_RS,Interpro_domain,LRT_pred,MetaSVM_pred,MutationAssessor_pred,MutationTaster_pred,PROVEAN_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,SIFT_pred,Uniprot_acc,phastCons100way_vertebrate"
@@ -114,9 +114,9 @@ workflow vcfAnnotate {
         input_vcf_index = select_first([AnnotateWithClinVarVCF.output_vcf_index, input_vcf_index]),
         cpus = if threads < 6 then 6 else threads,
         vep_ref = vep_ref,
-        assembly = assembly,
-        buffer_size = buffer_size,
-        flags = flags,
+        assembly = vep_assembly,
+        buffer_size = vep_buffer_size,
+        flags = vep_flags,
         annotate_with_dbnsfp = annotate_with_dbnsfp,
         annotate_with_alphamissense = annotate_with_alphamissense,
         annotate_with_loftee = annotate_with_loftee,

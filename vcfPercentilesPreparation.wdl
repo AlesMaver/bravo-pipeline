@@ -15,11 +15,11 @@ workflow prepareVCFPercentiles {
         File samplesFile
 
         # Size of memory buffer to use
-        Int buffer_size  = 100000
+        Int vep_buffer_size  = 100000
 
         # VEP
         VEPReferences vep_ref
-        String assembly = "GRCh38"
+        String vep_assembly = "GRCh38"
 
         # CAD score files and associated index files
         File cadScores
@@ -53,8 +53,8 @@ workflow prepareVCFPercentiles {
 #    call variantEffectPredictor {
 #        input: 
 #            chromosomeVCF = AddOriginalVCFAnnotations.output_vcf,
-#            assembly = assembly,
-#            buffer_size = buffer_size,
+#            assembly = vep_assembly,
+#            buffer_size = vep_buffer_size,
 #            #referenceDir = referenceDir,
 #            referenceFasta = referenceFasta,
 #            #lofteeDir = lofteeDir
@@ -81,8 +81,8 @@ workflow prepareVCFPercentiles {
             input_vcf_index = AddOriginalVCFAnnotations.output_vcf_index,
             cpus = if threads < 6 then 6 else threads,
             vep_ref = vep_ref,
-            assembly = assembly,
-            buffer_size = buffer_size,
+            assembly = vep_assembly,
+            buffer_size = vep_buffer_size,
             annotate_with_dbnsfp = false,
             annotate_with_alphamissense = false,
             annotate_with_loftee = true
