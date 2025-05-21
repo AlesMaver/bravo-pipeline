@@ -10,7 +10,7 @@
   "vcfAnnotate.annotate_with_alphamissense": "true",
   "vcfAnnotate.annotate_with_loftee": "true",
   "vcfAnnotate.vep_ref": {
-    "cache_dir": "/absPath/VEP113_0",
+    "cache_dir": "/absPath/VEP114_0",
     "plugins_dir": "/absPath/VEP_plugins",
     "dbNSFP_vcf": "/absPath/VEP_plugins_data/dbNSFP4.9a/dbNSFP4.9a_grch38.gz",
     "dbNSFP_vcf_index": "/absPath/VEP_plugins_data/dbNSFP4.9a/dbNSFP4.9a_grch38.gz.tbi",
