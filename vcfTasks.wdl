@@ -282,7 +282,7 @@ task RemoveReportedVariants {
 
   command {
     set -e
-    wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/kigm-dev/removeReportedVariants.py
+    wget https://raw.githubusercontent.com/AlesMaver/bravo-pipeline/refs/heads/kigm-prod/removeReportedVariants.py
     python removeReportedVariants.py -i ~{input_vcf} -o ~{output_vcf_filename} -v ~{reported_variants}
   }
   runtime {
